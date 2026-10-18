@@ -1,1 +1,2 @@
-DEV_ALLOW_NO_AUTH=true
+# 本機測試用登入密碼（正式環境請用 npx wrangler secret put APP_PASSWORD）
+APP_PASSWORD=change-me

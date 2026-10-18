@@ -5,19 +5,15 @@
   "compatibility_date": "2025-09-01",
   "assets": {
     "directory": "./public",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "run_worker_first": true
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "ai-pm",
-      // 步驟 4：換成 `npx wrangler d1 create ai-pm` 輸出的 database_id
       "database_id": "5113673f-321b-42e1-afdd-8102f2ba016c"
     }
-  ],
-  "vars": {
-    // 步驟 8：開啟 Cloudflare Access 後，貼上畫面顯示的兩個值
-    "TEAM_DOMAIN": "",
-    "POLICY_AUD": ""
-  }
+  ]
+  // 登入密碼不放在這裡，請用 `npx wrangler secret put APP_PASSWORD` 設定
 }

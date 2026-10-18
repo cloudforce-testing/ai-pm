@@ -1,6 +1,6 @@
 # AI 導入專案管理：部署到 Cloudflare
 
-這個資料夾會在 Cloudflare 上架一個只有你（和你授權的同事）能登入的網頁。資料存在 Cloudflare D1 資料庫，換電腦、換瀏覽器都看得到同一份。
+這個資料夾會在 Cloudflare 上架一個需要密碼才能進入的網頁。資料存在 Cloudflare D1 資料庫，換電腦、換瀏覽器都看得到同一份。
 
 整體架構只有三件事：
 
@@ -8,7 +8,7 @@
 | --- | --- |
 | Cloudflare Worker | 提供網頁（`public/index.html`）與讀寫資料的 `/api` |
 | Cloudflare D1 | 存放專案、工作項目、衝刺與設定 |
-| Cloudflare Access | 登入關卡：只有名單內的 email 能打開網頁 |
+| 登入密碼 | 存在 Cloudflare 的加密機密（Secret）裡，不在程式碼中；輸入正確密碼後 30 天內免再登入 |
 
 ## 開始前
 
@@ -52,52 +52,37 @@ npx wrangler d1 create ai-pm
 npx wrangler d1 execute ai-pm --remote --file=schema.sql
 ```
 
-**步驟 6：第一次上架**
+**步驟 6：設定登入密碼**
+
+```bash
+npx wrangler secret put APP_PASSWORD
+```
+
+會提示你輸入密碼（畫面不會顯示字元），請用一組夠長的密碼（建議 16 字元以上）。密碼只存在 Cloudflare，不會寫進任何檔案。
+
+**步驟 7：上架**
 
 ```bash
 npx wrangler deploy
 ```
 
-完成後會顯示網址，格式像 `https://ai-pm.你的子網域.workers.dev`。這時打開網頁會看到「伺服器拒絕讀取資料」，這是正常的：登入關卡還沒設定，所以伺服器先擋下所有讀寫。
+完成後會顯示網址，格式像 `https://ai-pm.你的子網域.workers.dev`。打開會先看到登入頁，輸入剛才的密碼即可進入。頁面上方顯示「資料已儲存」代表一切正常。
 
-**步驟 7：開啟登入保護（Cloudflare Access）**
-
-1. 到 [Cloudflare 主控台](https://dash.cloudflare.com/)，進入 **Workers & Pages**，點選 `ai-pm`。
-2. 進入 **Settings → Domains & Routes**。
-3. 在 `workers.dev` 那一列按 **Enable Cloudflare Access**。第一次使用時，可能會要求你先建立 Zero Trust 組織（取一個團隊名稱、選 Free 方案）。
-4. 跳出的視窗會顯示兩個值：**團隊網域**（類似 `https://你的團隊.cloudflareaccess.com`）與 **AUD**（一長串英數字）。先複製起來。
-5. 按 **Manage Cloudflare Access** 調整允許名單：可以只放你自己的 email，或放進種子成員、主管的 email，也可以設定「email 結尾是 @你們公司.com」。
-
-主控台的按鈕名稱和位置可能隨 Cloudflare 改版而變動，若找不到，請參考官方說明：[Workers 的 Access 設定](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/#manage-access-to-workersdev)。
-
-**步驟 8：把登入設定填回去，再上架一次**
-
-打開 `wrangler.jsonc`，填入：
-
-```jsonc
-"vars": {
-  "TEAM_DOMAIN": "https://你的團隊.cloudflareaccess.com",
-  "POLICY_AUD": "貼上 AUD"
-}
-```
-
-存檔後執行：
-
-```bash
-npx wrangler deploy
-```
-
-**步驟 9：登入使用**
-
-打開網址，輸入允許名單中的 email，收信取得驗證碼後就能進入。頁面上方顯示「資料已儲存」代表一切正常。
-
-**步驟 10：搬移舊資料**
+**步驟 8：搬移舊資料**
 
 在原本的版本（claude.ai 連結或下載的 html）按「匯出備份」，得到一個 `.json` 檔；再到新網址按「匯入備份」選擇該檔即可。
+
+## GitHub Pages 單機版（選用）
+
+倉庫內附 `.github/workflows/pages.yml`，推到 GitHub 後會自動把 `public/` 發佈到 GitHub Pages。這個版本沒有後端，資料存在瀏覽器裡，適合臨時查看或離線備用；要跨裝置同步請用 Cloudflare 版。
 
 ## 日常維護
 
 **更新網頁**：把新的 html 檔改名為 `index.html`，覆蓋 `public/index.html`，再執行 `npx wrangler deploy`。資料庫內容不受影響。
+
+**更換密碼**：再執行一次 `npx wrangler secret put APP_PASSWORD`。換密碼後所有已登入的瀏覽器都要重新登入。
+
+**登出**：打開 `你的網址/logout`。
 
 **備份**：網頁上的「匯出備份」仍然可用，建議每月存一份。也可以用指令備份整個資料庫：
 
@@ -109,9 +94,9 @@ npx wrangler d1 export ai-pm --remote --output=backup.sql
 
 ## 常見問題
 
-**一直顯示「伺服器拒絕讀取資料」**：檢查步驟 8 的兩個值是否完整貼上、沒有多餘空白，並確認有重新執行 `npx wrangler deploy`。
+**打開網址顯示「尚未設定密碼」**：步驟 6 還沒做，或做完後沒有重新執行 `npx wrangler deploy`。
 
-**出現「儲存失敗」**：通常是登入過期。重新整理頁面、重新登入後再改一次。
+**出現「儲存失敗」或「伺服器拒絕這次儲存」**：登入已過期（30 天）。重新整理頁面、重新登入後再改一次。
 
 **想在自己電腦上測試（選用）**：
 
@@ -121,11 +106,12 @@ npx wrangler d1 execute ai-pm --local --file=schema.sql
 npx wrangler dev
 ```
 
-然後打開 `http://localhost:8787`。`.dev.vars` 會關閉登入檢查，**只能用在本機**，不要上傳或部署。
+然後打開 `http://localhost:8787`，密碼是 `.dev.vars` 裡的 `APP_PASSWORD`。`.dev.vars` 已列在 `.gitignore`，不會被上傳。
 
 ## 安全說明
 
-- Cloudflare Access 在請求進到網頁之前就會擋下未登入的人。
-- Worker 另外會驗證 Access 簽發的登入憑證（`Cf-Access-Jwt-Assertion`），沒有有效憑證的 `/api` 請求一律拒絕。
+- 沒有登入 cookie 的請求：網頁一律導向登入頁，`/api` 一律回 401。
+- 登入 cookie 是 HttpOnly、SameSite=Lax、Secure，並以密碼衍生的金鑰做 HMAC 簽章，無法偽造。
+- 密碼錯誤時伺服器會延遲回應，降低暴力嘗試速度；請仍使用夠長的隨機密碼。
 - 寫入只接受同一網址發出的請求。
-- 若之後綁定公司自己的網域，請確認 Access 保護也涵蓋該網域。
+- 若之後綁定公司自己的網域，登入保護會自動涵蓋，不需額外設定。
