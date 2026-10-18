@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI 導入專案管理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2F0; --surface:#FFFFFF; --sunk:#E3E9E6; --ink:#17201E; --muted:#5A6764; --line:#D3DBD8;
+  --accent:#1E5E52; --accent-ink:#FFFFFF; --accent-soft:#D8EAE4;
+  --warn:#9A5B00; --warn-soft:#FAEBD0; --danger:#A3322A; --danger-soft:#F7DEDB;
+  --s1:#B8DDD2;--s2:#96CBBC;--s3:#72B7A5;--s4:#4FA08B;--s5:#348873;--s6:#237060;--s7:#17574A;--sa:#17201E;--sb:#FFFFFF;
+  color-scheme:light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#111715; --surface:#19211F; --sunk:#0D1210; --ink:#E3EBE8; --muted:#94A39F; --line:#2B3633;
+    --accent:#6BC2AC; --accent-ink:#0D1A16; --accent-soft:#1D3530;
+    --warn:#E8A94E; --warn-soft:#352914; --danger:#F08A80; --danger-soft:#3A1E1B;
+    --s1:#24453D;--s2:#2C5A4F;--s3:#367062;--s4:#418876;--s5:#52A08C;--s6:#67B7A2;--s7:#82CDB9;--sa:#E3EBE8;--sb:#0D1A16;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111715; --surface:#19211F; --sunk:#0D1210; --ink:#E3EBE8; --muted:#94A39F; --line:#2B3633;
+  --accent:#6BC2AC; --accent-ink:#0D1A16; --accent-soft:#1D3530;
+  --warn:#E8A94E; --warn-soft:#352914; --danger:#F08A80; --danger-soft:#3A1E1B;
+  --s1:#24453D;--s2:#2C5A4F;--s3:#367062;--s4:#418876;--s5:#52A08C;--s6:#67B7A2;--s7:#82CDB9;--sa:#E3EBE8;--sb:#0D1A16;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1400px;margin:0 auto;padding:20px clamp(12px,3vw,32px) 48px}
+
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px;margin-bottom:18px}
+h1{font-size:1.6rem;line-height:1.25;margin:0;font-weight:700;letter-spacing:.02em}
+.sub{color:var(--muted);font-size:.9rem;margin:2px 0 0}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 14px;font-weight:500;font-size:.9rem}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.rail{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.seg{position:relative;border:0;background:transparent;text-align:left;padding:12px 14px 12px 18px;border-right:1px solid var(--line);min-width:0}
+.seg:last-child{border-right:0}
+.seg::after{content:"";position:absolute;right:-6px;top:50%;width:10px;height:10px;background:var(--surface);border:1px solid var(--line);transform:translateY(-50%) rotate(45deg);z-index:1}
+.seg:last-child::after{display:none}
+.seg .n{display:block;font-size:1.9rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.seg .l{display:block;font-size:.85rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg.zero .n{color:var(--line)}
+.seg:hover{background:var(--sunk)}
+.seg.alert .n{color:var(--warn)}
+@media (max-width:720px){
+  .rail{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .seg:nth-child(4){border-right:0}
+  .seg:nth-child(-n+4){border-bottom:1px solid var(--line)}
+  .seg::after{display:none}
+  .seg .n{font-size:1.4rem}
+}
+
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+nav.tabs button{border:0;background:none;padding:8px 14px;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+.notice{border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.9rem;background:var(--accent-soft)}
+.notice.warn{background:var(--warn-soft)}
+.notice.err{background:var(--danger-soft)}
+.notice button{margin-left:8px}
+
+.board{overflow-x:auto;padding-bottom:8px}
+.cols{display:grid;grid-template-columns:repeat(7,minmax(230px,1fr));gap:10px;min-width:max-content}
+.col{background:var(--sunk);border-radius:10px;padding:10px;min-height:120px}
+.col h3{font-size:.92rem;margin:2px 4px 10px;display:flex;justify-content:space-between;font-weight:700}
+.col h3 span{color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+.card{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.card:hover{border-color:var(--accent)}
+.card .t{font-weight:700;line-height:1.35;margin-bottom:4px}
+.card .m{font-size:.8rem;color:var(--muted)}
+.card .nx{font-size:.84rem;margin-top:6px}
+.card .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.tag{font-size:.75rem;border-radius:999px;padding:1px 8px;background:var(--accent-soft);white-space:nowrap}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.meter{flex:1;min-width:60px;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent)}
+.empty-col{font-size:.82rem;color:var(--muted);padding:6px 4px}
+details.parked{margin-top:18px}
+details.parked summary{cursor:pointer;color:var(--muted);font-weight:500}
+.parked-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:10px}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:40px 20px;text-align:center}
+.empty p{margin:0 0 14px;color:var(--muted)}
+
+.tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table.t{border-collapse:collapse;width:100%;font-size:.88rem}
+table.t th,table.t td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font-weight:700;background:var(--sunk);white-space:nowrap}
+table.t tr:last-child td{border-bottom:0}
+.num{text-align:right!important;font-variant-numeric:tabular-nums}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--sunk)}
+.hint{color:var(--muted);font-size:.85rem}
+
+.report-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.report-grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.panel h2{font-size:1.05rem;margin:0 0 10px}
+.big{font-size:1.15rem;line-height:1.6;margin:0}
+.plain{list-style:none;margin:0;padding:0}
+.plain li{padding:6px 0;border-bottom:1px solid var(--line)}
+.plain li:last-child{border-bottom:0}
+textarea.out{width:100%;min-height:260px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);padding:10px;font-size:.85rem;resize:vertical}
+
+/* gantt */
+.g-tools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:12px;font-size:.9rem}
+.g-tools select,.tb-grid input{border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--surface)}
+.gantt{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.g-inner{position:relative}
+.g-row{display:flex;border-bottom:1px solid var(--line);min-height:48px;cursor:pointer}
+.g-row:last-child{border-bottom:0}
+.g-row:hover .g-label{background:var(--sunk)}
+.g-label{position:sticky;left:0;z-index:3;width:220px;flex:none;background:var(--surface);border-right:1px solid var(--line);padding:6px 10px;font-size:.84rem;line-height:1.4}
+.g-label b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-label span{color:var(--muted)}
+.g-label span.over{color:var(--warn);font-weight:500}
+.g-head{min-height:32px;cursor:default;background:var(--sunk)}
+.g-head .g-label{background:var(--sunk);font-weight:700}
+.g-track{position:relative;flex:none}
+.g-month{position:absolute;top:0;bottom:0;padding:6px 0 0 6px;font-size:.78rem;color:var(--muted);white-space:nowrap}
+.g-line{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);pointer-events:none;z-index:1}
+.g-today{position:absolute;top:0;bottom:0;border-left:2px solid var(--danger);z-index:2;pointer-events:none}
+.bar{position:absolute;top:13px;height:22px;border-radius:4px;font-size:.72rem;line-height:22px;padding:0 5px;overflow:hidden;white-space:nowrap;z-index:2}
+.bar.s1{background:var(--s1);color:var(--sa)}.bar.s2{background:var(--s2);color:var(--sa)}.bar.s3{background:var(--s3);color:var(--sa)}
+.bar.s4{background:var(--s4);color:var(--sb)}.bar.s5{background:var(--s5);color:var(--sb)}.bar.s6{background:var(--s6);color:var(--sb)}.bar.s7{background:var(--s7);color:var(--sb)}
+.bar.plan{background:transparent;border:1.5px dashed var(--accent);color:var(--muted);line-height:19px}
+.bar.over{background:var(--warn);color:var(--surface)}
+.bar.parked{background:var(--line);color:var(--muted)}
+.ms{position:absolute;top:17px;width:14px;height:14px;margin-left:-7px;z-index:3}
+.ms.due{background:var(--ink);transform:rotate(45deg) scale(.75)}
+.ms.launch{border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.8rem;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:18px;height:10px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.tb-panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.tb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px 16px;margin:8px 0}
+.tb-grid label{font-size:.85rem;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tb-grid input{width:72px}
+
+/* deck */
+.deck-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.deck-layout{grid-template-columns:1fr}}
+.deck-cfg{position:sticky;top:12px}
+.deck-cfg .f:first-of-type{margin-top:0}
+.deck-cfg .actions{margin-top:14px}
+.slides{display:grid;gap:18px}
+.slide-item{margin:0}
+.slide-item figcaption{font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.slide-frame{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#fff}
+.slide{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;background:#fff;color:#17201E;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.slide .tx{position:absolute;display:flex;flex-direction:column;line-height:1.4;white-space:pre-wrap;overflow:hidden;word-break:break-word}
+.slide table{position:absolute;border-collapse:collapse;table-layout:fixed}
+.slide th,.slide td{border-bottom:1px solid #D3DBD8;padding:0 12px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.present{position:fixed;inset:0;background:#000;z-index:50;display:flex;align-items:center;justify-content:center;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.present .slide-frame{border:0;border-radius:0;width:auto}
+.present .pbar{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;color:#ddd;font-size:.85rem;background:rgba(0,0,0,.55);border-radius:8px;padding:4px 8px;opacity:.25;transition:opacity .2s}
+.present .pbar:hover,.present .pbar:focus-within{opacity:1}
+.present .pbar button{background:transparent;border:1px solid #555;color:#eee;border-radius:6px;padding:3px 10px}
+
+/* agile */
+.sp-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;margin-bottom:14px}
+@media (max-width:900px){.sp-head{grid-template-columns:1fr}}
+.goal{font-size:1.15rem;font-weight:700;margin:6px 0 10px;line-height:1.45}
+.stat{display:flex;gap:6px 20px;flex-wrap:wrap;font-size:.88rem;color:var(--muted);align-items:baseline}
+.stat b{color:var(--ink);font-size:1.35rem;font-variant-numeric:tabular-nums;margin-right:2px}
+svg.chart{width:100%;height:auto;display:block}
+svg.chart text{font-size:11px;fill:var(--muted)}
+.cols4{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:10px;min-width:max-content}
+.icard{cursor:pointer}
+.icard .ft{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.icard .ft .sp{flex:1}
+.mini{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:0 8px;font-size:.8rem;line-height:24px;min-width:30px}
+.mini:hover{border-color:var(--accent)}
+.tag.muted{background:var(--sunk);color:var(--muted)}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+.quick input,.quick select{border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--surface)}
+.quick input.grow{flex:1;min-width:220px}
+.blist{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.brow{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line)}
+.brow:last-child{border-bottom:0}
+.brow .ttl{cursor:pointer;min-width:0}
+.brow .ttl b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow .tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.brow .mv{display:flex;gap:4px}
+@media (max-width:640px){.brow{grid-template-columns:28px minmax(0,1fr) auto}.brow .tags{grid-column:2/3;justify-content:flex-start}}
+.pick{max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin:10px 0}
+.pick label{display:flex;gap:10px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--line);font-size:.9rem;cursor:pointer}
+.pick label:last-child{border-bottom:0}
+.pick label .grow{flex:1;min-width:0}
+details.past{border-bottom:1px solid var(--line);padding:8px 0}
+details.past:last-child{border-bottom:0}
+details.past summary{cursor:pointer;font-weight:500}
+details.past dl{display:grid;grid-template-columns:7em minmax(0,1fr);gap:4px 12px;margin:8px 0 0;font-size:.88rem}
+details.past dt{color:var(--muted)}
+details.past dd{margin:0;white-space:pre-wrap}
+.worklist{list-style:none;margin:0;padding:0;font-size:.88rem}
+.worklist li{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.worklist li span.grow{flex:1;min-width:0}
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,16,14,.38);z-index:20}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:var(--surface);z-index:21;display:flex;flex-direction:column;border-left:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.dr-head{display:flex;gap:10px;align-items:flex-start;padding:16px 18px 10px;border-bottom:1px solid var(--line)}
+.dr-head input{flex:1;font-size:1.25rem;font-weight:700;border:1px solid transparent;border-radius:6px;padding:4px 6px;background:transparent;min-width:0}
+.dr-head input:hover,.dr-head input:focus{border-color:var(--line)}
+.dr-body{overflow-y:auto;padding:14px 18px 40px;flex:1}
+.stage-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.stage-ctl select,.stage-ctl input{border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--surface)}
+.gate{background:var(--accent-soft);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.gate .q{font-weight:700;margin:0 0 8px}
+.gate ul{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px 12px;font-size:.88rem}
+.gate li::before{content:"○ ";color:var(--muted)}
+.gate li.ok::before{content:"● ";color:var(--accent)}
+.gate .warnbox{margin-top:10px;background:var(--warn-soft);border-radius:8px;padding:10px 12px;font-size:.88rem}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.kpi b{display:block;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.kpi span{font-size:.78rem;color:var(--muted)}
+details.sec{border:1px solid var(--line);border-radius:10px;margin-bottom:10px}
+details.sec summary{padding:10px 14px;cursor:pointer;font-weight:700;display:flex;justify-content:space-between;gap:8px}
+details.sec summary span{font-weight:400;color:var(--muted);font-size:.85rem}
+details.sec .in{padding:0 14px 14px}
+.f{margin-top:10px}
+.f label{display:block;font-size:.85rem;font-weight:500;margin-bottom:3px}
+.f label small{color:var(--muted);font-weight:400;margin-left:6px}
+.f input,.f textarea,.f select{width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 9px;background:var(--surface)}
+.f textarea{min-height:72px;resize:vertical}
+.f textarea.tall{min-height:140px}
+.score{display:flex;gap:4px}
+.score button{width:36px;height:32px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-variant-numeric:tabular-nums}
+.score button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.log{list-style:none;padding:0;margin:8px 0 0;font-size:.88rem}
+.log li{padding:6px 0;border-bottom:1px solid var(--line);display:flex;gap:10px}
+.log li time{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.log-add{display:flex;gap:6px;margin-top:8px}
+.log-add input{flex:1;border:1px solid var(--line);border-radius:6px;padding:6px 9px;background:var(--surface);min-width:0}
+.dr-foot{margin-top:24px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ro input,.ro textarea,.ro select,.ro .score button{pointer-events:none;opacity:.8}
+@media (prefers-reduced-motion:no-preference){
+  .drawer{animation:slide .18s ease-out}
+  @keyframes slide{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>AI 導入專案</h1>
+      <p class="sub" id="sub">載入中</p>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="btn-new">新增專案</button>
+      <button class="btn" data-view="deck">產出簡報</button>
+      <button class="btn" id="btn-backup">匯出備份</button>
+      <button class="btn" id="btn-restore">匯入備份</button>
+      <input type="file" id="file" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <div id="notices"></div>
+  <div class="rail" id="rail" aria-label="各關卡專案數"></div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-view="board" aria-selected="true">專案關卡</button>
+    <button role="tab" data-view="sprint" aria-selected="false">衝刺</button>
+    <button role="tab" data-view="backlog" aria-selected="false">待辦清單</button>
+    <button role="tab" data-view="gantt" aria-selected="false">甘特圖</button>
+    <button role="tab" data-view="priority" aria-selected="false">優先排序</button>
+    <button role="tab" data-view="report" aria-selected="false">月報</button>
+    <button role="tab" data-view="deck" aria-selected="false">簡報</button>
+    <button role="tab" data-view="guide" aria-selected="false">流程說明</button>
+  </nav>
+
+  <main id="main"></main>
+</div>
+<div id="drawer-root"></div>
+<div id="present-root"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= definitions ================= */
+const STAGES = [
+  {k:"1 收件", s:"收件", purpose:"所有需求從同一入口進來", gate:"這是「問題」，還是對方已想好的「解法」？", req:["name","unit","owner","current"]},
+  {k:"2 探索", s:"探索", purpose:"挖出真正的痛點與現況數字", gate:"能否一句話講清「誰、在什麼情況、遇到什麼困難、造成什麼損失」？", req:["problem","freq","mins","people"]},
+  {k:"3 評估排序", s:"評估排序", purpose:"用同一把尺決定先做什麼", gate:"在所有待辦裡，這件事值得現在做嗎？", req:["sImpact","sFeas","sFit","sCommit","sRisk"]},
+  {k:"4 驗證", s:"驗證", purpose:"用最便宜的方式確認方向", gate:"使用者試用後覺得有幫助？測試案例的品質達標？", req:["success","tests"]},
+  {k:"5 建置", s:"建置", purpose:"在時間上限內做出可用工具", gate:"測試案例達標？有人能在你不在時處理基本問題？", req:["outScope","due"]},
+  {k:"6 上線導入", s:"上線導入", purpose:"讓人真的開始用", gate:"大家真的在用嗎？沒在用的原因是什麼？", req:["launch","maint","usage"]},
+  {k:"7 營運檢討", s:"營運檢討", purpose:"對照基準值算出效益", gate:"維護成本對得起它帶來的價值嗎？", req:["minsAfter"]}
+];
+const PARKED = ["暫停","退場"];
+const ALL_STAGES = STAGES.map(s=>s.k).concat(PARKED);
+
+const FIELDS = [
+  {k:"name",h:"專案名稱",t:"text",s:0},
+  {k:"stage",h:"關卡",t:"stage",s:0},
+  {k:"unit",h:"提案單位",t:"text",s:1,hint:"例如：業務部"},
+  {k:"owner",h:"提案人",t:"text",s:1},
+  {k:"start",h:"開始日",t:"date",s:1,hint:"甘特圖從這天開始畫"},
+  {k:"current",h:"現況做法",t:"long",s:1,hint:"現在怎麼做、用什麼工具"},
+  {k:"problem",h:"問題陳述",t:"long",s:2,hint:"誰／什麼情況／什麼困難／什麼損失"},
+  {k:"freq",h:"每月發生次數",t:"num",s:2,hint:"全單位合計"},
+  {k:"mins",h:"每次耗時分鐘",t:"num",s:2,hint:"導入前"},
+  {k:"people",h:"影響人數",t:"num",s:2},
+  {k:"interview",h:"訪談紀錄",t:"long",s:2,tall:true,hint:"上次遇到是什麼時候？怎麼處理？最花時間的是哪一步？"},
+  {k:"sImpact",h:"影響分",t:"score",s:3,hint:"範圍越大、痛越深越高"},
+  {k:"sFeas",h:"可行性分",t:"score",s:3,hint:"資料拿得到、技術做得到越高"},
+  {k:"sFit",h:"AI適配分",t:"score",s:3,hint:"規則或自動化就能解決則給低分"},
+  {k:"sCommit",h:"投入度分",t:"score",s:3,hint:"提案人願意一起測試、推動越高"},
+  {k:"sRisk",h:"風險分",t:"score",s:3,hint:"5 = 風險最高"},
+  {k:"success",h:"成功標準",t:"long",s:4,hint:"上線後怎樣算成功，含數字"},
+  {k:"tests",h:"測試案例",t:"long",s:4,tall:true,hint:"一行一個：輸入 → 期望結果 → 是否通過"},
+  {k:"outScope",h:"範圍外",t:"long",s:5,hint:"這次明確不做的事"},
+  {k:"due",h:"預計交付日",t:"date",s:5},
+  {k:"launch",h:"上線日",t:"date",s:6},
+  {k:"maint",h:"維護負責人",t:"text",s:6,hint:"單位內的窗口"},
+  {k:"usage",h:"每月使用次數",t:"num",s:6},
+  {k:"followup",h:"回訪紀錄",t:"long",s:6,tall:true,hint:"兩週與一個月回訪：怎麼用、卡在哪"},
+  {k:"minsAfter",h:"導入後每次耗時分鐘",t:"num",s:7},
+  {k:"next",h:"下一步",t:"text",s:0},
+  {k:"decisions",h:"決策紀錄",t:"log",s:0}
+];
+const F = Object.fromEntries(FIELDS.map(f=>[f.k,f]));
+const STALE_DAYS = 14;
+const DEFAULT_TB = [7,14,7,14,28,30,30];
+
+/* ================= state ================= */
+let projects = new Map();
+let TB = DEFAULT_TB.slice(), WIP = 2;
+let deckCfg = {title:"AI 導入進度報告", audience:"", detail:"validated", asks:""};
+let view = "board", openId = null, pendingAdvance = null, confirmDelete = false;
+let gRange = "1-3", gShowParked = false, gSettings = false;
+let reportMonth;
+let mode = "loading", db = null, col = null, canEdit = true, loaded = false;
+let downloadsNS = null;
+const timers = {}, chains = {};
+const ITYPES=["使用者故事","任務","探索","問題"];
+const ISTAT=["待辦","進行中","待驗收","完成"];
+const PTS=[1,2,3,5,8,13];
+const ITEM_KEYS=["title","projectId","type","asA","iWant","soThat","ac","points","status","sprintId","rank","notes","doneAt","createdAt","updatedAt"];
+const SPRINT_KEYS=["no","name","start","end","goal","status","review","keep","problem","try","committedPoints","completedPoints","closedAt","createdAt","updatedAt"];
+let items=new Map(), sprints=new Map();
+let SPRINT_LEN=14, ITEM_WIP=3;
+let openItem=null, confirmItemDelete=false;
+let planDraft=null, closing=false, closeDraft={review:"",keep:"",problem:"",try:""};
+let blFilter="all", blShowDone=false;
+const COLX={}; const LSX={items:"ai-pm-items-v1",sprints:"ai-pm-sprints-v1"};
+const LS_KEY="ai-pm-projects-v1", LS_SET="ai-pm-settings-v1", LS_DECK="ai-pm-deck-v1";
+
+/* ================= helpers ================= */
+const $ = s=>document.querySelector(s);
+const esc = v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const empty = v=>v===undefined||v===null||v===""||(Array.isArray(v)&&v.length===0);
+const num = v=>{ if(empty(v)) return ""; const n=parseFloat(String(v).replace(/,/g,"")); return isNaN(n)?"":n; };
+const r1 = n=>Math.round(n*10)/10;
+const pad = n=>String(n).padStart(2,"0");
+const ymd = d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today = ()=>ymd(new Date());
+reportMonth = today().slice(0,7);
+const stageIdx = k=>STAGES.findIndex(s=>s.k===k);
+const DAY=86400000;
+const dnum = s=>Math.round(Date.parse(s+"T00:00:00Z")/DAY);
+const dstr = n=>new Date(n*DAY).toISOString().slice(0,10);
+const span = (s,e)=>dstr(s)+" 至 "+dstr(e-1)+"（"+(e-s)+" 天）";
+const nm = p=>p.name||"未命名專案";
+const cut = (s,n)=>{ s=String(s||""); return s.length>n?s.slice(0,n-1)+"…":s; };
+
+function score(p){
+  const ks=["sImpact","sFeas","sFit","sCommit","sRisk"];
+  if(ks.some(k=>empty(p[k]))) return null;
+  return p.sImpact*2+p.sFeas+p.sFit+p.sCommit+(6-p.sRisk);
+}
+function baseHours(p){ return (!empty(p.freq)&&!empty(p.mins)) ? r1(p.freq*p.mins/60) : null; }
+function saved(p){ return (!empty(p.freq)&&!empty(p.mins)&&!empty(p.minsAfter)) ? r1(p.freq*(p.mins-p.minsAfter)/60) : null; }
+function gateStatus(p){
+  const i=stageIdx(p.stage); if(i<0) return null;
+  const req=STAGES[i].req; return {req,done:req.filter(k=>!empty(p[k])),missing:req.filter(k=>empty(p[k]))};
+}
+function daysSince(iso){ if(!iso) return 0; const t=Date.parse(iso); return isNaN(t)?0:Math.floor((Date.now()-t)/DAY); }
+function history(p){
+  const start=p.start||(p.createdAt?ymd(new Date(p.createdAt)):today());
+  const moves=[];
+  (p.decisions||[]).forEach(e=>{ const m=String(e.t||"").match(/從「(.+?)」移到「(.+?)」/); if(m&&e.d) moves.push({d:e.d,from:m[1],to:m[2]}); });
+  moves.sort((a,b)=>a.d.localeCompare(b.d));
+  const first=moves.length?(ALL_STAGES.includes(moves[0].from)?moves[0].from:STAGES[0].k):p.stage;
+  const h=[{stage:first,d:start}];
+  moves.forEach(m=>{ if(!ALL_STAGES.includes(m.to)) return; const last=h[h.length-1].d; h.push({stage:m.to,d:m.d<last?last:m.d}); });
+  if(h[h.length-1].stage!==p.stage){ const last=h[h.length-1].d; const u=p.updatedAt?ymd(new Date(p.updatedAt)):today(); h.push({stage:p.stage,d:u<last?last:u}); }
+  return h;
+}
+function stageClock(p){
+  const i=stageIdx(p.stage); if(i<0) return null;
+  const h=history(p), entry=h[h.length-1].d, t=dnum(today());
+  const days=Math.max(0,t-dnum(entry));
+  if(i===6) return {i,entry,days,box:TB[6],pe:null,endStr:"",over:0};
+  const useDue=i===4&&p.due;
+  const pe=useDue?dnum(p.due)+1:dnum(entry)+TB[i];
+  return {i,entry,days,box:useDue?Math.max(1,pe-dnum(entry)):TB[i],pe,endStr:dstr(pe-1),over:Math.max(0,t+1-pe)};
+}
+function isStale(p){ const i=stageIdx(p.stage); return i>=0 && i<=5 && daysSince(p.updatedAt)>=STALE_DAYS; }
+function isOver(p){ const c=stageClock(p); return !!(c&&c.over>0); }
+function ganttSegments(p,t){
+  const h=history(p), ck=stageClock(p), out=[];
+  h.forEach((e,k)=>{
+    const s=dnum(e.d), last=k===h.length-1, si=stageIdx(e.stage), lab=si<0?e.stage:STAGES[si].s;
+    if(!last){ const e2=dnum(h[k+1].d); out.push({s,e:e2,k:si<0?"parked":"s"+(si+1),label:lab,title:e.stage+"："+span(s,e2)}); return; }
+    if(si<0){ out.push({s,e:t+1,k:"parked",label:lab,title:e.stage+"：自 "+e.d}); return; }
+    if(si===6){ out.push({s,e:t+1,k:"s7",label:lab,title:e.stage+"：自 "+e.d}); return; }
+    const pe=ck.pe;
+    if(t+1>pe){ out.push({s,e:pe,k:"s"+(si+1),label:lab,title:e.stage+"：時間盒 "+span(s,pe)}); out.push({s:pe,e:t+1,k:"over",label:"超過 "+ck.over+" 天",title:"超過時間盒 "+ck.over+" 天"}); }
+    else { out.push({s,e:t+1,k:"s"+(si+1),label:lab,title:e.stage+"：自 "+e.d}); out.push({s:t+1,e:pe,k:"plan",label:"",title:"本關時間盒到 "+ck.endStr}); }
+    let cur=Math.max(pe,t+1);
+    for(let j=si+1;j<=5;j++){
+      const e2=(j===4&&p.due&&dnum(p.due)+1>cur)?dnum(p.due)+1:cur+TB[j];
+      out.push({s:cur,e:e2,k:"plan",label:STAGES[j].s,title:"預估 "+STAGES[j].k+"："+span(cur,e2)}); cur=e2;
+    }
+  });
+  return out;
+}
+function sorted(list){
+  return list.sort((a,b)=>{
+    const sa=score(a)??-1, sb=score(b)??-1;
+    if(sb!==sa) return sb-sa;
+    return (b.updatedAt||"").localeCompare(a.updatedAt||"");
+  });
+}
+function byStage(list){ return list.sort((p,q)=>{ const a=stageIdx(p.stage), b=stageIdx(q.stage); return ((a<0?99:a)-(b<0?99:b))||nm(p).localeCompare(nm(q)); }); }
+
+/* ================= storage ================= */
+function clean(p){ const o={}; for(const f of FIELDS){ if(!empty(p[f.k])) o[f.k]=p[f.k]; } o.updatedAt=p.updatedAt||new Date().toISOString(); o.createdAt=p.createdAt||o.updatedAt; return o; }
+function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)||"null"); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
+function saveLocal(){ if(!lsSet(LS_KEY,[...projects.values()])) notice("瀏覽器無法儲存資料，請立即匯出備份。","err"); }
+function newId(){ return col ? col.doc().id : "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function writeNow(p){
+  if(mode==="api") return apiReq("PUT","projects",p.id,clean(p));
+  if(mode==="db"){
+    const id=p.id, body=clean(p);
+    chains[id]=(chains[id]||Promise.resolve()).then(()=>col.doc(id).set(body)).catch(e=>{
+      if(e&&e.code==="invalid_argument"){ canEdit=false; renderAll(); notice("你目前只有檢視權限，變更沒有被儲存。","warn"); }
+      else notice("儲存失敗（"+(e&&e.code||"未知錯誤")+"），請稍後再改一次。","err");
+    });
+    return chains[id];
+  }
+  saveLocal(); return Promise.resolve();
+}
+function persist(p,immediate){
+  p.updatedAt=new Date().toISOString();
+  projects.set(p.id,p);
+  renderShell();
+  clearTimeout(timers[p.id]);
+  if(immediate){ delete timers[p.id]; return writeNow(p); }
+  timers[p.id]=setTimeout(()=>{ delete timers[p.id]; writeNow(projects.get(p.id)); },500);
+}
+function removeProject(id){
+  projects.delete(id); clearTimeout(timers[id]); delete timers[id];
+  if(mode==="api") apiReq("DELETE","projects",id);
+  else if(mode==="db") (chains[id]||Promise.resolve()).then(()=>col.doc(id).delete()).catch(()=>notice("刪除失敗，請重新整理後再試。","err"));
+  else saveLocal();
+}
+let lastApiWrite=0, apiTimer=null;
+function apiReq(method,coll,id,body){
+  const key=coll+":"+id+":api"; lastApiWrite=Date.now();
+  chains[key]=(chains[key]||Promise.resolve()).then(async()=>{
+    const r=await fetch("/api/doc/"+encodeURIComponent(coll)+"/"+encodeURIComponent(id),{method,headers:{"content-type":"application/json"},body:body?JSON.stringify(body):undefined,credentials:"same-origin",cache:"no-store"});
+    lastApiWrite=Date.now();
+    if(r.status===401||r.status===403){ notice("伺服器拒絕這次儲存：登入可能已過期。請重新整理頁面、重新登入後再改一次。","err"); return; }
+    if(!r.ok) throw new Error("HTTP "+r.status);
+  }).catch(e=>notice("儲存失敗（"+(e&&e.message||"網路錯誤")+"）。若持續發生，請重新整理頁面重新登入。","err"));
+  return chains[key];
+}
+function mergeApi(d){
+  const mk=(arr,c,cur)=>{ const next=new Map(); const tk=id=>c==="projects"?id:c+":"+id;
+    (Array.isArray(arr)?arr:[]).forEach(o=>{ if(!o||!o.id) return; const local=cur.get(o.id); next.set(o.id,timers[tk(o.id)]&&local?local:o); });
+    cur.forEach((o,id)=>{ if(!next.has(id)&&timers[tk(id)]) next.set(id,o); }); return next; };
+  projects=mk(d.projects,"projects",projects); items=mk(d.items,"items",items); sprints=mk(d.sprints,"sprints",sprints);
+  if(d.settings&&d.settings.timebox) applySettings(d.settings.timebox);
+  if(d.settings&&d.settings.deck&&!document.querySelector(".deck-cfg :focus")) Object.assign(deckCfg,d.settings.deck);
+}
+async function apiPull(){
+  if(mode!=="api"||document.hidden||Date.now()-lastApiWrite<5000||Object.keys(timers).length) return;
+  try{
+    const r=await fetch("/api/data",{cache:"no-store",credentials:"same-origin",headers:{accept:"application/json"}});
+    if(!r.ok||!(r.headers.get("content-type")||"").includes("application/json")) return;
+    const d=await r.json(); if(Date.now()-lastApiWrite<5000) return;
+    mergeApi(d);
+    if(document.querySelector("#main input:focus,#main textarea:focus,#main select:focus")){ renderSub(); renderRail(); } else renderShell();
+    if(openItem&&!items.has(openItem)){ openItem=null; renderDrawer(); }
+    else if(openId&&!projects.has(openId)){ openId=null; renderDrawer(); }
+    else if((openItem||openId)&&!document.querySelector(".drawer :focus")) renderDrawer();
+  }catch(e){}
+}
+const MAPX=c=>c==="items"?items:sprints;
+const allX=c=>[...MAPX(c).values()];
+function cleanX(c,o){ const keys=c==="items"?ITEM_KEYS:SPRINT_KEYS, r={}; keys.forEach(k=>{ if(!empty(o[k])) r[k]=o[k]; }); return r; }
+function newIdX(c){ return COLX[c]?COLX[c].doc().id:c[0]+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function writeX(c,o){
+  if(mode==="api") return apiReq("PUT",c,o.id,cleanX(c,o));
+  if(mode==="db"){
+    const key=c+":"+o.id, body=cleanX(c,o);
+    chains[key]=(chains[key]||Promise.resolve()).then(()=>COLX[c].doc(o.id).set(body)).catch(e=>{
+      if(e&&e.code==="invalid_argument"){ canEdit=false; renderAll(); notice("你目前只有檢視權限，變更沒有被儲存。","warn"); }
+      else notice("儲存失敗（"+(e&&e.code||"未知錯誤")+"），請稍後再改一次。","err");
+    });
+    return chains[key];
+  }
+  if(!lsSet(LSX[c],allX(c))) notice("瀏覽器無法儲存資料，請立即匯出備份。","err");
+  return Promise.resolve();
+}
+function persistX(c,o,immediate){
+  o.updatedAt=new Date().toISOString(); MAPX(c).set(o.id,o);
+  const key=c+":"+o.id; clearTimeout(timers[key]);
+  if(immediate){ delete timers[key]; writeX(c,o); }
+  else timers[key]=setTimeout(()=>{ delete timers[key]; const cur=MAPX(c).get(o.id); cur&&writeX(c,cur); },500);
+}
+function removeX(c,id){
+  MAPX(c).delete(id); const key=c+":"+id; clearTimeout(timers[key]); delete timers[key];
+  if(mode==="api") apiReq("DELETE",c,id);
+  else if(mode==="db") (chains[key]||Promise.resolve()).then(()=>COLX[c].doc(id).delete()).catch(()=>notice("刪除失敗，請重新整理後再試。","err"));
+  else lsSet(LSX[c],allX(c));
+}
+function isReady(it){ return !empty(it.title)&&!empty(it.points)&&(it.type!=="使用者故事"||!empty(it.ac)); }
+function activeSprint(){ return allX("sprints").find(s=>s.status==="active")||null; }
+function closedSprints(){ return allX("sprints").filter(s=>s.status==="closed").sort((a,b)=>(a.no||0)-(b.no||0)); }
+function nextSprintNo(){ return allX("sprints").reduce((m,s)=>Math.max(m,+s.no||0),0)+1; }
+function sprintItems(sp){ return allX("items").filter(i=>i.sprintId===sp.id); }
+function ptsOf(list){ return list.reduce((a,i)=>a+(+i.points||0),0); }
+function avgVelocity(){ const c=closedSprints().slice(-3); return c.length?Math.round(c.reduce((a,s)=>a+(+s.completedPoints||0),0)/c.length):null; }
+function backlogItems(){ return allX("items").filter(i=>!i.sprintId&&i.status!=="完成").sort((a,b)=>(a.rank||0)-(b.rank||0)); }
+function projName(id){ const p=id&&projects.get(id); return p?nm(p):""; }
+function minRank(){ const b=allX("items"); return b.length?Math.min(...b.map(i=>+i.rank||0)):0; }
+function maxRank(){ const b=allX("items"); return b.length?Math.max(...b.map(i=>+i.rank||0)):0; }
+function sprintDay(sp){ const L=dnum(sp.end)-dnum(sp.start)+1; const d=Math.min(L,Math.max(1,dnum(today())-dnum(sp.start)+1)); return {d,L,left:Math.max(0,dnum(sp.end)-dnum(today()))}; }
+const md=s=>{ const a=String(s||"").split("-"); return a.length===3?(+a[1])+"/"+(+a[2]):s; };
+function applySettings(o){
+  if(o&&Array.isArray(o.days)&&o.days.length===7) TB=o.days.map((v,i)=>+v>0?+v:DEFAULT_TB[i]);
+  if(o&&+o.wip>0) WIP=+o.wip;
+  if(o&&+o.sprintLen>0) SPRINT_LEN=+o.sprintLen;
+  if(o&&+o.itemWip>0) ITEM_WIP=+o.itemWip;
+}
+function saveSettings(){
+  const body={days:TB,wip:WIP,sprintLen:SPRINT_LEN,itemWip:ITEM_WIP};
+  if(mode==="api") apiReq("PUT","settings","timebox",body);
+  else if(mode==="db") db.doc("settings/timebox").set(body).catch(()=>notice("時間盒設定儲存失敗。","err"));
+  else lsSet(LS_SET,body);
+}
+let deckTimer;
+function saveDeckCfg(){
+  clearTimeout(deckTimer);
+  deckTimer=setTimeout(()=>{
+    if(mode==="api") apiReq("PUT","settings","deck",Object.assign({},deckCfg));
+    else if(mode==="db") db.doc("settings/deck").set(Object.assign({},deckCfg)).catch(()=>{});
+    else lsSet(LS_DECK,deckCfg);
+  },500);
+}
+
+/* ================= notices ================= */
+let noticeTimer;
+function notice(msg,kind){
+  $("#notices").innerHTML='<div class="notice '+(kind||"")+'" role="status">'+esc(msg)+'<button class="btn ghost" data-act="dismiss">關閉</button></div>';
+  clearTimeout(noticeTimer);
+  if(!kind) noticeTimer=setTimeout(()=>{ $("#notices").innerHTML=""; },8000);
+}
+
+/* ================= shell ================= */
+function renderShell(){ renderSub(); renderRail(); renderMain(); }
+function renderAll(){ renderShell(); renderDrawer(); }
+function renderSub(){
+  const all=[...projects.values()];
+  const active=all.filter(p=>stageIdx(p.stage)>=0).length;
+  const flagged=all.filter(p=>isStale(p)||isOver(p)).length;
+  const where = mode==="api"&&!canEdit ? "尚未登入或伺服器設定未完成" : mode==="db"||mode==="api" ? "資料已儲存" : mode==="local" ? "資料存在這個瀏覽器，請定期匯出備份" : "";
+  const sp=activeSprint(); const spTxt=sp?"第 "+sp.no+" 次衝刺進行中，剩 "+sprintDay(sp).left+" 天。":"";
+  $("#sub").textContent = loaded ? ("進行中 "+active+" 項"+(flagged?"，"+flagged+" 項需要留意":"")+"。"+spTxt+where+(canEdit?"":"（唯讀）")) : "載入中";
+  ["#btn-new","#btn-restore"].forEach(s=>{ $(s).hidden=!canEdit; });
+}
+function renderRail(){
+  const all=[...projects.values()];
+  $("#rail").innerHTML=STAGES.map((s,i)=>{
+    const ps=all.filter(p=>p.stage===s.k); const al=ps.some(p=>isStale(p)||isOver(p));
+    return '<button class="seg'+(ps.length?"":" zero")+(al?" alert":"")+'" data-jump="'+i+'" title="'+esc(s.purpose)+'"><span class="n">'+ps.length+'</span><span class="l">'+(i+1)+" "+esc(s.s)+'</span></button>';
+  }).join("");
+}
+function renderMain(){
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===view)));
+  const m=$("#main");
+  if(!loaded){ m.innerHTML='<p class="hint">正在讀取專案…</p>'; return; }
+  const all=[...projects.values()];
+  if(view==="guide"){ m.innerHTML=guideHTML(); return; }
+  if(view==="sprint"){ m.innerHTML=sprintHTML(); return; }
+  if(view==="backlog"){ m.innerHTML=backlogHTML(); return; }
+  if(!all.length){
+    m.innerHTML='<div class="empty"><p>還沒有專案。有新的構想時，按「新增專案」開始記錄。</p>'+(canEdit?'<button class="btn primary" data-act="new">新增專案</button>':"")+'</div>';
+    return;
+  }
+  if(view==="board") m.innerHTML=boardHTML(all);
+  else if(view==="gantt") m.innerHTML=ganttHTML(all);
+  else if(view==="priority") m.innerHTML=priorityHTML(all);
+  else if(view==="report") m.innerHTML=reportHTML(all);
+  else if(view==="deck"){ renderDeck(); }
+}
+
+/* ================= board ================= */
+function cardHTML(p,prefix){
+  const g=gateStatus(p), sc=score(p), i=stageIdx(p.stage), ck=stageClock(p);
+  const meta=[p.unit,p.owner].filter(Boolean).map(esc).join("／");
+  let tags="";
+  if(sc!=null&&i<=3&&i>=0) tags+='<span class="tag">優先 '+sc+'</span>';
+  const sv=saved(p); if(sv!=null&&i>=5) tags+='<span class="tag">月省 '+sv+' 小時</span>';
+  if(ck&&ck.over>0) tags+='<span class="tag warn">超過時間盒 '+ck.over+' 天</span>';
+  if(isStale(p)) tags+='<span class="tag warn">'+daysSince(p.updatedAt)+' 天未更新</span>';
+  const its=allX("items").filter(x=>x.projectId===p.id); if(its.length) tags+='<span class="tag muted">工作 '+its.filter(x=>x.status==="完成").length+'/'+its.length+'</span>';
+  const meter=g?'<span class="meter" title="本關欄位 '+g.done.length+'/'+g.req.length+'"><i style="width:'+(g.done.length/g.req.length*100)+'%"></i></span>':"";
+  return '<button class="card" data-open="'+esc(p.id)+'"><div class="t">'+(prefix||"")+esc(nm(p))+'</div>'+(meta?'<div class="m">'+meta+'</div>':"")+
+    (p.next?'<div class="nx">下一步：'+esc(p.next)+'</div>':"")+'<div class="row">'+tags+meter+'</div></button>';
+}
+function boardHTML(all){
+  const cols=STAGES.map((s,i)=>{
+    const ps=sorted(all.filter(p=>p.stage===s.k));
+    return '<section class="col" id="col-'+i+'"><h3>'+(i+1)+" "+esc(s.s)+'<span>'+ps.length+'</span></h3>'+(ps.length?ps.map(p=>cardHTML(p)).join(""):'<div class="empty-col">目前沒有專案</div>')+'</section>';
+  }).join("");
+  const parked=all.filter(p=>PARKED.includes(p.stage));
+  return '<div class="board"><div class="cols">'+cols+'</div></div>'+
+    (parked.length?'<details class="parked"><summary>暫停與退場（'+parked.length+'）</summary><div class="parked-list">'+sorted(parked).map(p=>cardHTML(p,"〔"+esc(p.stage)+"〕")).join("")+'</div></details>':"");
+}
+
+/* ================= gantt ================= */
+function ganttHTML(all){
+  const [b,a]=gRange.split("-").map(Number);
+  const now=new Date(), t=dnum(today());
+  const from=dnum(ymd(new Date(now.getFullYear(),now.getMonth()-b,1)));
+  const to=dnum(ymd(new Date(now.getFullYear(),now.getMonth()+a+1,0)));
+  const days=to-from+1, ppd=Math.max(3,Math.min(12,Math.floor(1100/days))), W=days*ppd, LW=220;
+  const X=d=>(Math.max(from,Math.min(to+1,d))-from)*ppd;
+  const n5=all.filter(p=>p.stage===STAGES[4].k).length;
+  let out='<div class="g-tools"><label>範圍 <select id="g-range">'+
+    [["1-3","前 1 個月＋後 3 個月"],["3-3","前 3 個月＋後 3 個月"],["6-6","前 6 個月＋後 6 個月"]].map(o=>'<option value="'+o[0]+'"'+(o[0]===gRange?" selected":"")+'>'+o[1]+'</option>').join("")+
+    '</select></label><label><input type="checkbox" id="g-parked"'+(gShowParked?" checked":"")+'> 顯示暫停與退場</label>'+
+    '<button class="btn" data-act="g-settings" aria-expanded="'+gSettings+'">時間盒設定</button>'+
+    (n5>WIP?'<span class="tag warn">建置中 '+n5+' 項，超過同時上限 '+WIP+' 項</span>':'<span class="hint">建置中 '+n5+'／上限 '+WIP+' 項</span>')+'</div>';
+  if(gSettings){
+    out+='<div class="tb-panel"><b>每關可停留的天數</b><p class="hint" style="margin:2px 0 0">超過就會標示，並提醒你做決定。建置關若有填「預計交付日」，以交付日為準。</p><div class="tb-grid">'+
+      STAGES.map((s,i)=>'<label>'+(i+1)+" "+esc(s.s)+' <input type="number" min="1" step="1" data-tb="'+i+'" value="'+TB[i]+'"'+(canEdit?"":" disabled")+'></label>').join("")+
+      '<label>建置同時上限 <input type="number" min="1" step="1" id="g-wip" value="'+WIP+'"'+(canEdit?"":" disabled")+'></label></div>'+
+      (canEdit?'<button class="btn ghost" data-act="tb-reset">恢復預設值</button>':"")+'</div>';
+  }
+  const rows=byStage(all.filter(p=>stageIdx(p.stage)>=0||(gShowParked&&PARKED.includes(p.stage))));
+  if(!rows.length) return out+'<p class="hint">沒有可顯示的專案。</p>';
+  let months="", lines="";
+  for(let d=new Date(now.getFullYear(),now.getMonth()-b,1); dnum(ymd(d))<=to; d=new Date(d.getFullYear(),d.getMonth()+1,1)){
+    const x=X(dnum(ymd(d)));
+    months+='<span class="g-month" style="left:'+x+'px">'+(d.getMonth()===0||x===0?d.getFullYear()+" 年 ":"")+(d.getMonth()+1)+' 月</span>';
+    lines+='<span class="g-line" style="left:'+(LW+x)+'px"></span>';
+  }
+  const body=rows.map(p=>{
+    const ck=stageClock(p);
+    const segs=ganttSegments(p,t).map(g=>{ const x1=X(g.s), w=X(g.e)-x1; if(w<=0) return ""; return '<span class="bar '+g.k+'" style="left:'+x1+'px;width:'+w+'px" title="'+esc(g.title)+'">'+(w>36?esc(g.label):"")+'</span>'; }).join("");
+    let ms="";
+    if(p.due){ const d=dnum(p.due); if(d>=from&&d<=to) ms+='<span class="ms due" style="left:'+(X(d)+ppd/2)+'px" title="預計交付日 '+esc(p.due)+'"></span>'; }
+    if(p.launch){ const d=dnum(p.launch); if(d>=from&&d<=to) ms+='<span class="ms launch" style="left:'+(X(d)+ppd/2)+'px" title="上線日 '+esc(p.launch)+'"></span>'; }
+    const sub=!ck?esc(p.stage):ck.i===6?esc(p.stage)+"，第 "+(ck.days+1)+" 天":esc(STAGES[ck.i].s)+"，第 "+(ck.days+1)+"／"+ck.box+" 天";
+    return '<div class="g-row" data-open="'+esc(p.id)+'"><div class="g-label"><b>'+esc(nm(p))+'</b><span class="'+(ck&&ck.over?"over":"")+'">'+sub+'</span></div><div class="g-track" style="width:'+W+'px">'+segs+ms+'</div></div>';
+  }).join("");
+  const todayLine=(t>=from&&t<=to)?'<span class="g-today" style="left:'+(LW+X(t)+ppd/2)+'px" title="今天 '+today()+'"></span>':"";
+  return out+'<div class="gantt"><div class="g-inner" style="width:'+(LW+W)+'px">'+lines+todayLine+
+    '<div class="g-row g-head"><div class="g-label">專案</div><div class="g-track" style="width:'+W+'px">'+months+'</div></div>'+body+'</div></div>'+
+    '<div class="legend"><span><i style="background:var(--s3)"></i>已走過或目前所在的關卡</span><span><i style="border:1.5px dashed var(--accent)"></i>依時間盒推估</span><span><i style="background:var(--warn)"></i>超過時間盒</span><span><i style="background:var(--ink);transform:rotate(45deg) scale(.6);width:12px;height:12px"></i>預計交付日</span><span><i style="background:var(--accent);border-radius:50%;width:12px;height:12px"></i>上線日</span><span><i style="background:var(--danger);width:2px"></i>今天</span></div>'+
+    '<p class="hint">各關的起訖日來自「決策紀錄」裡的關卡移動紀錄，起點是「開始日」。用專案內頁的按鈕或選單移動關卡，就會自動記錄。</p>';
+}
+
+/* ================= agile views ================= */
+function projOptions(sel,withAll){
+  return (withAll?'<option value="all"'+(sel==="all"?" selected":"")+'>全部專案</option>':"")+
+    '<option value=""'+(sel===""?" selected":"")+'>不屬於任何專案</option>'+
+    byStage([...projects.values()]).map(p=>'<option value="'+esc(p.id)+'"'+(sel===p.id?" selected":"")+'>'+esc(nm(p))+'</option>').join("");
+}
+function itemTags(it){
+  let t=empty(it.points)?'<span class="tag warn">未估點</span>':'<span class="tag">'+it.points+' 點</span>';
+  if(!isReady(it)&&!empty(it.points)) t+='<span class="tag warn">未就緒</span>';
+  return t;
+}
+function icardHTML(it){
+  const pn=projName(it.projectId);
+  return '<div class="card icard" data-item="'+esc(it.id)+'"><div class="t">'+esc(it.title||"未命名工作")+'</div>'+
+    '<div class="m">'+esc(it.type||"任務")+(pn?"｜"+esc(pn):"")+'</div><div class="ft">'+itemTags(it)+'<span class="sp"></span>'+
+    (canEdit?'<button class="mini" data-mv="'+esc(it.id)+'" data-dir="-1" aria-label="移到前一欄"'+(it.status==="待辦"?" disabled":"")+'>◀</button><button class="mini" data-mv="'+esc(it.id)+'" data-dir="1" aria-label="移到下一欄"'+(it.status==="完成"?" disabled":"")+'>▶</button>':"")+'</div></div>';
+}
+function burnSVG(sp){
+  const its=sprintItems(sp), total=ptsOf(its), d0=dnum(sp.start), d1=dnum(sp.end), L=Math.max(1,d1-d0), t=dnum(today());
+  const W=640,H=230,pl=40,pr=14,pt=14,pb=30;
+  const X=k=>pl+k/L*(W-pl-pr), Y=v=>pt+(total?1-v/total:1)*(H-pt-pb);
+  let pts=[]; for(let k=0;k<=Math.min(L,t-d0);k++){ const ds=dstr(d0+k); pts.push(X(k).toFixed(1)+","+Y(total-ptsOf(its.filter(i=>i.status==="完成"&&i.doneAt&&i.doneAt<=ds))).toFixed(1)); }
+  const xt=t>=d0&&t<=d1?'<line x1="'+X(t-d0)+'" x2="'+X(t-d0)+'" y1="'+pt+'" y2="'+(H-pb)+'" style="stroke:var(--danger);stroke-width:1.5"/>':"";
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="燃盡圖：剩餘點數隨時間的變化">'+
+    '<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+(H-pb)+'" y2="'+(H-pb)+'" style="stroke:var(--line)"/><line x1="'+pl+'" x2="'+pl+'" y1="'+pt+'" y2="'+(H-pb)+'" style="stroke:var(--line)"/>'+
+    '<line x1="'+X(0)+'" y1="'+Y(total)+'" x2="'+X(L)+'" y2="'+Y(0)+'" style="stroke:var(--muted);stroke-dasharray:5 4;stroke-width:1.5"/>'+xt+
+    (pts.length?'<polyline points="'+pts.join(" ")+'" style="fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round"/>':"")+
+    '<text x="'+(pl-6)+'" y="'+(pt+4)+'" text-anchor="end">'+total+'</text><text x="'+(pl-6)+'" y="'+(H-pb)+'" text-anchor="end">0</text>'+
+    '<text x="'+pl+'" y="'+(H-10)+'">'+md(sp.start)+'</text><text x="'+(W-pr)+'" y="'+(H-10)+'" text-anchor="end">'+md(sp.end)+'</text></svg>'+
+    '<div class="legend"><span><i style="background:var(--accent);height:3px"></i>實際剩餘點數</span><span><i style="border-top:2px dashed var(--muted);height:0"></i>理想進度</span><span><i style="background:var(--danger);width:2px"></i>今天</span></div>';
+}
+function velocitySVG(){
+  const c=closedSprints().slice(-8); if(!c.length) return '<p class="hint">結束第一次衝刺後，這裡會顯示每次的承諾與完成點數。</p>';
+  const W=640,H=200,pl=34,pb=26,pt=12, mx=Math.max(1,...c.map(s=>Math.max(+s.committedPoints||0,+s.completedPoints||0)));
+  const gw=(W-pl-10)/c.length, bw=Math.min(26,gw/3), Y=v=>pt+(1-v/mx)*(H-pt-pb);
+  let g='<line x1="'+pl+'" x2="'+(W-10)+'" y1="'+(H-pb)+'" y2="'+(H-pb)+'" style="stroke:var(--line)"/><text x="'+(pl-6)+'" y="'+(pt+4)+'" text-anchor="end">'+mx+'</text>';
+  c.forEach((s,i)=>{ const x=pl+i*gw+gw/2; const a=+s.committedPoints||0, b=+s.completedPoints||0;
+    g+='<rect x="'+(x-bw-1)+'" y="'+Y(a)+'" width="'+bw+'" height="'+(H-pb-Y(a))+'" rx="2" style="fill:var(--s2)"><title>第 '+s.no+' 次承諾 '+a+' 點</title></rect>'+
+       '<rect x="'+(x+1)+'" y="'+Y(b)+'" width="'+bw+'" height="'+(H-pb-Y(b))+'" rx="2" style="fill:var(--accent)"><title>第 '+s.no+' 次完成 '+b+' 點</title></rect>'+
+       '<text x="'+x+'" y="'+(H-8)+'" text-anchor="middle">第 '+s.no+' 次</text>'; });
+  const av=avgVelocity();
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="速度圖：每次衝刺的承諾與完成點數">'+g+'</svg><div class="legend"><span><i style="background:var(--s2)"></i>承諾點數</span><span><i style="background:var(--accent)"></i>完成點數</span>'+(av!=null?'<span>近三次平均完成 '+av+' 點</span>':"")+'</div>';
+}
+function pastHTML(){
+  const c=closedSprints().slice().reverse();
+  return '<div class="panel" style="margin-top:16px"><h2>速度與過去的衝刺</h2>'+velocitySVG()+
+    (c.length?'<div style="margin-top:10px">'+c.map(s=>'<details class="past"><summary>第 '+s.no+' 次｜'+md(s.start)+'–'+md(s.end)+'｜完成 '+(s.completedPoints||0)+'／'+(s.committedPoints||0)+' 點</summary><dl>'+
+      '<dt>衝刺目標</dt><dd>'+esc(s.goal||"–")+'</dd><dt>檢視紀錄</dt><dd>'+esc(s.review||"–")+'</dd><dt>做得好</dt><dd>'+esc(s.keep||"–")+'</dd><dt>待改進</dt><dd>'+esc(s.problem||"–")+'</dd><dt>下次嘗試</dt><dd>'+esc(s.try||"–")+'</dd></dl></details>').join("")+'</div>':"")+
+    '<details class="past"><summary>衝刺設定</summary><div class="tb-grid"><label>每次衝刺天數 <input type="number" min="5" step="1" id="set-splen" value="'+SPRINT_LEN+'"'+(canEdit?"":" disabled")+'></label><label>進行中上限 <input type="number" min="1" step="1" id="set-iwip" value="'+ITEM_WIP+'"'+(canEdit?"":" disabled")+'></label></div></details></div>';
+}
+function sprintHTML(){
+  const sp=activeSprint();
+  if(!sp){
+    if(!planDraft) planDraft={start:today(),len:SPRINT_LEN,goal:"",sel:new Set()};
+    const bl=backlogItems(), av=avgVelocity(), n=nextSprintNo();
+    const sum=ptsOf(bl.filter(i=>planDraft.sel.has(i.id)));
+    const plan='<div class="panel"><h2>規劃第 '+n+' 次衝刺</h2><p class="hint" style="margin:0 0 8px">先寫一句這兩週要達成什麼，再從待辦清單由上往下挑工作。總點數參考過去的平均完成點數，寧可少排、做完再加。</p>'+
+      '<div class="tb-grid"><label>開始日 <input type="date" id="sp-start" value="'+esc(planDraft.start)+'" style="width:auto"></label><label>天數 <input type="number" min="5" step="1" id="sp-len" value="'+esc(planDraft.len)+'"></label></div>'+
+      '<div class="f"><label for="sp-goal">衝刺目標<small>例如：讓業務部能用原型檢查 20 張真實報價單</small></label><input id="sp-goal" value="'+esc(planDraft.goal)+'"></div>'+
+      (bl.length?'<div class="pick">'+bl.map(i=>'<label><input type="checkbox" data-pick="'+esc(i.id)+'"'+(planDraft.sel.has(i.id)?" checked":"")+'><span class="grow"><b>'+esc(i.title||"未命名工作")+'</b><br><span class="hint">'+esc(i.type||"任務")+(projName(i.projectId)?"｜"+esc(projName(i.projectId)):"")+'</span></span>'+itemTags(i)+'</label>').join("")+'</div>'+
+        '<div class="stat"><span>已選 <b id="sp-sum">'+sum+'</b> 點</span>'+(av!=null?'<span>近三次平均完成 <b>'+av+'</b> 點</span>':'<span>第一次衝刺沒有歷史速度，先少排一點，結束後就有參考值。</span>')+'</div>'+
+        (canEdit?'<div class="actions" style="margin-top:12px"><button class="btn primary" data-act="sp-start">開始衝刺</button></div>':"")
+       :'<div class="empty" style="margin-top:10px"><p>待辦清單還是空的。先把要做的工作拆成小項目放進待辦清單。</p><button class="btn primary" data-view="backlog">前往待辦清單</button></div>')+'</div>';
+    return plan+pastHTML();
+  }
+  const its=sprintItems(sp), done=its.filter(i=>i.status==="完成"), sd=sprintDay(sp), wipN=its.filter(i=>i.status==="進行中").length;
+  let head;
+  if(closing){
+    const un=its.filter(i=>i.status!=="完成");
+    head='<div class="panel" style="margin-bottom:14px"><h2>結束第 '+sp.no+' 次衝刺</h2><p style="margin:0 0 6px">完成 '+ptsOf(done)+'／'+ptsOf(its)+' 點。'+(un.length?'未完成的 '+un.length+' 項會回到待辦清單最上方。':'全部完成。')+'</p>'+
+      '<div class="f"><label for="cl-review">衝刺檢視紀錄<small>給種子成員看了什麼、他們怎麼說；值得做的回饋請另外加進待辦清單</small></label><textarea id="cl-review" data-cl="review">'+esc(closeDraft.review)+'</textarea></div>'+
+      '<div class="report-grid" style="gap:10px"><div class="f"><label for="cl-keep">做得好，要保持</label><textarea id="cl-keep" data-cl="keep">'+esc(closeDraft.keep)+'</textarea></div><div class="f"><label for="cl-problem">待改進</label><textarea id="cl-problem" data-cl="problem">'+esc(closeDraft.problem)+'</textarea></div></div>'+
+      '<div class="f"><label for="cl-try">下次衝刺要嘗試的一件事</label><input id="cl-try" data-cl="try" value="'+esc(closeDraft.try)+'"></div>'+
+      '<div class="actions" style="margin-top:12px"><button class="btn primary" data-act="sp-close">結束衝刺並存檔</button><button class="btn ghost" data-act="sp-close-cancel">先不要</button></div></div>';
+  } else {
+    head='<div class="sp-head"><div class="panel"><h2>第 '+sp.no+' 次衝刺</h2><div class="hint">'+md(sp.start)+'–'+md(sp.end)+'，第 '+sd.d+'／'+sd.L+' 天，剩 '+sd.left+' 天</div>'+
+      '<p class="goal">'+esc(sp.goal||"（沒有寫衝刺目標）")+'</p>'+
+      '<div class="stat"><span>完成 <b>'+ptsOf(done)+'</b>／'+ptsOf(its)+' 點</span><span>項目 <b>'+done.length+'</b>／'+its.length+'</span><span'+(wipN>ITEM_WIP?' style="color:var(--warn)"':"")+'>進行中 <b>'+wipN+'</b>／上限 '+ITEM_WIP+'</span></div>'+
+      (canEdit?'<div class="actions" style="margin-top:14px"><button class="btn" data-act="sp-close-open">結束衝刺</button></div>':"")+'</div>'+
+      '<div class="panel"><h2>燃盡圖</h2>'+burnSVG(sp)+'</div></div>';
+  }
+  const quick=canEdit?'<div class="quick"><input class="grow" id="qa-title" placeholder="臨時加入這次衝刺的工作（會改變範圍，請謹慎）"><select id="qa-proj" aria-label="所屬專案">'+projOptions("")+'</select><select id="qa-pts" aria-label="點數"><option value="">點數</option>'+PTS.map(n=>'<option>'+n+'</option>').join("")+'</select><button class="btn" data-act="qa-add">加入</button></div>':"";
+  const cols=ISTAT.map(st=>{
+    const list=its.filter(i=>(i.status||"待辦")===st).sort((a,b)=>(a.rank||0)-(b.rank||0));
+    const over=st==="進行中"&&list.length>ITEM_WIP;
+    return '<section class="col"><h3>'+st+'<span'+(over?' style="color:var(--warn)"':"")+'>'+list.length+(st==="進行中"?'／'+ITEM_WIP:"")+'　'+ptsOf(list)+' 點</span></h3>'+(list.length?list.map(icardHTML).join(""):'<div class="empty-col">沒有項目</div>')+'</section>';
+  }).join("");
+  return head+quick+'<div class="board"><div class="cols4">'+cols+'</div></div>'+pastHTML();
+}
+function backlogHTML(){
+  const bl=backlogItems().filter(i=>blFilter==="all"||(i.projectId||"")===blFilter);
+  const doneList=allX("items").filter(i=>i.status==="完成"&&(blFilter==="all"||(i.projectId||"")===blFilter)).sort((a,b)=>(b.doneAt||"").localeCompare(a.doneAt||""));
+  const inSprint=allX("items").filter(i=>i.sprintId&&i.status!=="完成").length;
+  const quick=canEdit?'<div class="quick"><input class="grow" id="bl-title" placeholder="新增工作，例如：讓業務能上傳報價單 PDF"><select id="bl-proj" aria-label="所屬專案">'+projOptions(blFilter==="all"?"":blFilter)+'</select><select id="bl-type" aria-label="類型">'+ITYPES.map(t=>'<option>'+t+'</option>').join("")+'</select><select id="bl-pts" aria-label="點數"><option value="">點數</option>'+PTS.map(n=>'<option>'+n+'</option>').join("")+'</select><button class="btn primary" data-act="bl-add">新增</button></div>':"";
+  const rows=bl.map((i,idx)=>'<div class="brow"><span class="num hint">'+(idx+1)+'</span><div class="ttl" data-item="'+esc(i.id)+'"><b>'+esc(i.title||"未命名工作")+'</b><span class="hint">'+esc(i.type||"任務")+(projName(i.projectId)?"｜"+esc(projName(i.projectId)):"")+'</span></div><div class="tags">'+itemTags(i)+'</div>'+
+    (canEdit?'<div class="mv"><button class="mini" data-rank="'+esc(i.id)+'" data-dir="-1" aria-label="往上"'+(idx===0?" disabled":"")+'>▲</button><button class="mini" data-rank="'+esc(i.id)+'" data-dir="1" aria-label="往下"'+(idx===bl.length-1?" disabled":"")+'>▼</button></div>':"<div></div>")+'</div>').join("");
+  return quick+'<div class="g-tools"><label>篩選 <select id="bl-filter">'+projOptions(blFilter,true)+'</select></label><label><input type="checkbox" id="bl-done"'+(blShowDone?" checked":"")+'> 顯示已完成</label><span class="hint">由上往下是優先順序。'+(inSprint?'另有 '+inSprint+' 項正在衝刺中。':'')+'</span></div>'+
+    (bl.length?'<div class="blist">'+rows+'</div>':'<div class="empty"><p>'+(blFilter==="all"?"待辦清單是空的。把專案要做的事拆成兩週內做得完的小項目，一項一行加進來。":"這個專案目前沒有待辦工作。")+'</p></div>')+
+    '<p class="hint">就緒定義：有估點數；使用者故事另需寫好驗收條件。標示「未就緒」的項目先補齊再排進衝刺。</p>'+
+    (blShowDone?'<div class="panel" style="margin-top:12px"><h2>已完成（'+doneList.length+'）</h2>'+(doneList.length?'<ul class="worklist">'+doneList.map(i=>'<li data-item="'+esc(i.id)+'"><span class="hint">'+esc(i.doneAt||"")+'</span><span class="grow">'+esc(i.title||"未命名工作")+'</span>'+(i.points?'<span class="tag">'+i.points+' 點</span>':"")+'</li>').join("")+'</ul>':'<p class="hint">還沒有完成的工作。</p>')+'</div>':"");
+}
+function newItem(o){
+  const now=new Date().toISOString();
+  const it=Object.assign({id:newIdX("items"),title:"",type:"任務",status:"待辦",rank:maxRank()+1,createdAt:now},o);
+  persistX("items",it,true); return it;
+}
+function setItemStatus(it,st){
+  if(it.status===st) return;
+  it.status=st;
+  if(st==="完成") it.doneAt=today(); else delete it.doneAt;
+  persistX("items",it,true);
+}
+
+/* ================= priority ================= */
+function priorityHTML(all){
+  const ps=all.filter(p=>{const i=stageIdx(p.stage); return i>=0&&i<=2;}).sort((a,b)=>(score(b)??-1)-(score(a)??-1));
+  if(!ps.length) return '<p class="hint">關卡 1–3 目前沒有專案。</p>';
+  const td=v=>empty(v)?'<td class="num hint">–</td>':'<td class="num">'+esc(v)+'</td>';
+  return '<p class="hint">列出關卡 1–3 的專案。優先分數 = 影響分 × 2 + 可行性分 + AI適配分 + 投入度分 + (6 − 風險分)，滿分 30；五項填齊才計分。</p>'+
+  '<div class="tbl-wrap"><table class="t"><thead><tr><th class="num">排名</th><th>專案</th><th>提案單位</th><th>關卡</th><th class="num">影響</th><th class="num">可行</th><th class="num">適配</th><th class="num">投入</th><th class="num">風險</th><th class="num">優先分數</th><th class="num">現況每月耗時（小時）</th></tr></thead><tbody>'+
+  ps.map((p,i)=>'<tr class="click" data-open="'+esc(p.id)+'"><td class="num">'+(score(p)!=null?i+1:"")+'</td><td><b>'+esc(nm(p))+'</b></td><td>'+esc(p.unit)+'</td><td>'+esc(p.stage)+'</td>'+
+    td(p.sImpact)+td(p.sFeas)+td(p.sFit)+td(p.sCommit)+td(p.sRisk)+'<td class="num"><b>'+(score(p)??"–")+'</b></td>'+td(baseHours(p))+'</tr>').join("")+'</tbody></table></div>';
+}
+
+/* ================= report ================= */
+function reportData(all){
+  const month=reportMonth;
+  const live=all.filter(p=>stageIdx(p.stage)>=5);
+  return {
+    month, live,
+    launched:all.filter(p=>(p.launch||"").startsWith(month)),
+    updated:all.filter(p=>(p.updatedAt||"").startsWith(month)||(p.decisions||[]).some(e=>(e.d||"").startsWith(month))),
+    stale:all.filter(isStale), over:all.filter(isOver),
+    totalSaved:r1(live.reduce((a,p)=>a+Math.max(0,saved(p)||0),0)),
+    totalUsage:live.reduce((a,p)=>a+(num(p.usage)||0),0),
+    dist:STAGES.map(s=>({s:s.s,n:all.filter(p=>p.stage===s.k).length}))
+  };
+}
+function reportMarkdown(d){
+  const [y,mo]=d.month.split("-"); const L=[];
+  L.push("## AI 導入月報（"+y+" 年 "+(+mo)+" 月）","");
+  L.push("**一句話總結**：本月上線 "+d.launched.length+" 項，目前共 "+d.live.length+" 項在使用中，合計每月節省約 "+d.totalSaved+" 小時。","");
+  L.push("**專案分布**："+d.dist.map(x=>x.s+" "+x.n).join("／"),"");
+  L.push("**本月進展**：");
+  if(d.updated.length) d.updated.forEach(p=>{
+    const logs=(p.decisions||[]).filter(e=>(e.d||"").startsWith(d.month)).map(e=>e.t);
+    L.push("- "+nm(p)+"：目前在「"+p.stage+"」"+(logs.length?"；"+logs.join("；"):"")+(p.next?"；下一步："+p.next:""));
+  }); else L.push("- （本月沒有更新）");
+  L.push("");
+  if(d.over.length){ L.push("**超過時間盒**："); d.over.forEach(p=>L.push("- "+nm(p)+"（"+p.stage+"，超過 "+stageClock(p).over+" 天）")); L.push(""); }
+  if(d.stale.length){ L.push("**停滯專案**："); d.stale.forEach(p=>L.push("- "+nm(p)+"（"+p.stage+"，"+daysSince(p.updatedAt)+" 天未更新）")); L.push(""); }
+  const sps=allX("sprints").filter(s=>s.start&&s.end&&s.start.slice(0,7)<=d.month&&s.end.slice(0,7)>=d.month).sort((a,b)=>(a.no||0)-(b.no||0));
+  if(sps.length){ L.push("**本月衝刺**："); sps.forEach(s=>{ const its=sprintItems(s); const done=s.status==="closed"?(+s.completedPoints||0):ptsOf(its.filter(i=>i.status==="完成")); const tot=s.status==="closed"?(+s.committedPoints||0):ptsOf(its);
+    L.push("- 第 "+s.no+" 次（"+md(s.start)+"–"+md(s.end)+(s.status==="active"?"，進行中":"")+"）：目標「"+(s.goal||"")+"」，完成 "+done+"／"+tot+" 點"+(s.try?"；下次嘗試："+s.try:"")); }); L.push(""); }
+  L.push("**需要的協助**：", deckCfg.asks.trim()?deckCfg.asks.trim().split(/\n+/).map(s=>"- "+s.replace(/^[-•]\s*/,"")).join("\n"):"- （請填寫）");
+  return L.join("\n");
+}
+function reportHTML(all){
+  const d=reportData(all), md=reportMarkdown(d);
+  const list=(arr,fn,none)=>arr.length?'<ul class="plain">'+arr.map(p=>'<li><a href="#" data-open="'+esc(p.id)+'">'+esc(nm(p))+'</a> <span class="hint">'+fn(p)+'</span></li>').join("")+'</ul>':'<p class="hint">'+none+'</p>';
+  return '<div class="stage-ctl"><label for="month">月份</label> <input type="month" id="month" value="'+esc(d.month)+'"></div>'+
+  '<div class="report-grid"><div>'+
+    '<div class="panel" style="margin-bottom:16px"><h2>本月重點</h2><p class="big">本月上線 <b>'+d.launched.length+'</b> 項，目前 <b>'+d.live.length+'</b> 項在使用中，合計每月節省約 <b>'+d.totalSaved+'</b> 小時、每月使用 <b>'+d.totalUsage+'</b> 次。</p>'+
+    (d.live.length&&!d.totalSaved?'<p class="hint">節省時數需要在已上線的專案填入「導入後每次耗時分鐘」。</p>':"")+'</div>'+
+    '<div class="panel" style="margin-bottom:16px"><h2>本月有更新的專案（'+d.updated.length+'）</h2>'+list(d.updated,p=>esc(p.stage),"本月沒有更新紀錄。")+'</div>'+
+    '<div class="panel" style="margin-bottom:16px"><h2>超過時間盒（'+d.over.length+'）</h2>'+list(d.over,p=>esc(p.stage)+"，超過 "+stageClock(p).over+" 天","沒有超過時間盒的專案。")+'</div>'+
+    '<div class="panel"><h2>停滯專案（'+d.stale.length+'）</h2>'+list(d.stale,p=>esc(p.stage)+"，"+daysSince(p.updatedAt)+" 天未更新","沒有超過 "+STALE_DAYS+" 天未更新的專案。")+'</div>'+
+  '</div><div class="panel"><h2>月報草稿</h2><p class="hint">「需要的協助」會帶入「簡報」分頁裡填寫的內容。</p>'+
+    '<textarea class="out" id="report-md" readonly>'+esc(md)+'</textarea>'+
+    '<div class="actions" style="margin-top:8px"><button class="btn primary" data-act="copy-report">複製月報</button><button class="btn" data-act="save-report">下載 .md</button></div></div></div>';
+}
+
+/* ================= guide ================= */
+function guideHTML(){
+  return '<div class="tbl-wrap"><table class="t"><thead><tr><th>關卡</th><th>目的</th><th class="num">時間盒</th><th>本關要填的欄位</th><th>過關問題</th></tr></thead><tbody>'+
+  STAGES.map((s,i)=>'<tr><td><b>'+(i+1)+" "+esc(s.s)+'</b></td><td>'+esc(s.purpose)+'</td><td class="num">'+TB[i]+' 天</td><td>'+s.req.map(k=>esc(F[k].h)).join("、")+'</td><td>'+esc(s.gate)+'</td></tr>').join("")+
+  '</tbody></table></div>'+
+  '<div class="panel" style="margin-top:16px"><h2>使用方式</h2><ul class="plain">'+
+  '<li>有新構想就按「新增專案」記下來，先填收件關的四個欄位即可。</li>'+
+  '<li>每個專案依序過關。答不出過關問題，就先停在該關補資料，而不是硬往下做。</li>'+
+  '<li>時間盒是每關最多可停留的天數，可在「甘特圖」分頁調整。超過時不要默默延長：砍範圍、延長一次並寫下理由，或暫停，三選一。</li>'+
+  '<li>同時在「建置」的專案不超過 2 個；在驗證完成前，不對外承諾日期，只給範圍。</li>'+
+  '<li>每週五花 30 分鐘更新關卡與下一步；每月底到「月報」複製草稿；需要報告時到「簡報」播放或下載 PowerPoint。</li>'+
+  (mode==="local"?'<li>資料只存在這個瀏覽器。清除瀏覽資料或換電腦就會不見，請每週按「匯出備份」存一份 .json 檔，需要時用「匯入備份」還原。</li>':'<li>可以隨時按「匯出備份」存一份 .json 檔留底。</li>')+
+  '</ul></div>'+
+  '<div class="panel" style="margin-top:16px"><h2>敏捷節奏</h2><p class="hint" style="margin:0 0 8px">七個關卡管「這個專案做不做、做到哪」；衝刺管「這兩週實際做什麼」。兩者並行：專案在探索、驗證時，衝刺裡放訪談與原型；進到建置後，衝刺裡放功能。</p><ul class="plain">'+
+  '<li><b>待辦清單</b>：所有要做的事都拆成兩週內做得完的小項目，由上往下排優先順序。使用者故事用「身為…我想要…以便…」寫，並附驗收條件。</li>'+
+  '<li><b>衝刺規劃</b>（第一天，30 分鐘）：寫一句衝刺目標，從待辦清單由上往下挑，總點數不超過近三次平均完成點數。</li>'+
+  '<li><b>每日確認</b>（每天 5 分鐘）：昨天完成什麼、今天做什麼、卡在哪。卡住的原因寫進該項目的備註。</li>'+
+  '<li><b>進行中上限</b>：同時進行的項目不超過 '+ITEM_WIP+' 個，先做完再開新的。</li>'+
+  '<li><b>衝刺檢視</b>（最後一天）：把做好的東西給種子成員實際操作，回饋寫進檢視紀錄，值得做的轉成新的待辦。</li>'+
+  '<li><b>回顧</b>（最後一天，20 分鐘）：做得好、待改進，並只挑一件下次要嘗試的事。</li>'+
+  '<li><b>完成定義</b>：符合驗收條件、提案人看過、說明或交接文件已更新，才能拖到「完成」。</li>'+
+  '</ul></div>';
+}
+
+/* ================= deck: data → shape list ================= */
+const C={ink:"#17201E",muted:"#5A6764",line:"#D3DBD8",accent:"#1E5E52",soft:"#D8EAE4",warn:"#9A5B00",warnSoft:"#FAEBD0",danger:"#A3322A",white:"#FFFFFF"};
+const RAMP=["#B8DDD2","#96CBBC","#72B7A5","#4FA08B","#348873","#237060","#17574A"];
+const rampInk=i=>i<3?C.ink:C.white;
+const T=(x,y,w,h,text,o)=>Object.assign({t:"text",x,y,w,h,text:String(text),size:18,color:C.ink,align:"left",valign:"top"},o||{});
+const R=(x,y,w,h,o)=>Object.assign({t:"rect",x,y,w,h},o||{});
+const E=(x,y,w,h,o)=>Object.assign({t:"ellipse",x,y,w,h},o||{});
+const Ln=(x,y,w,h,o)=>Object.assign({t:"line",x,y,w,h,color:C.line,width:1},o||{});
+const titleOf=t=>T(64,40,1152,64,t,{size:38,bold:true,valign:"middle"});
+
+function buildDeck(){
+  const all=[...projects.values()];
+  const active=byStage(all.filter(p=>stageIdx(p.stage)>=0));
+  const live=all.filter(p=>stageIdx(p.stage)>=5);
+  const totalSaved=r1(live.reduce((a,p)=>a+Math.max(0,saved(p)||0),0));
+  const totalUsage=live.reduce((a,p)=>a+(num(p.usage)||0),0);
+  const t=dnum(today()); const [Y,M,D]=today().split("-");
+  const slides=[];
+
+  // 1 cover
+  slides.push({name:"封面",shapes:[
+    R(0,0,1280,720,{fill:C.accent}),
+    R(96,214,8,176,{fill:"#96CBBC"}),
+    T(128,200,1060,130,deckCfg.title||"AI 導入進度報告",{size:60,bold:true,color:C.white,valign:"bottom"}),
+    T(128,340,1060,56,deckCfg.audience||("共 "+active.length+" 個專案進行中"),{size:28,color:"#D8EAE4"}),
+    T(128,600,800,36,(+Y)+" 年 "+(+M)+" 月 "+(+D)+" 日",{size:20,color:"#D8EAE4"})
+  ]});
+
+  // 2 overview
+  const kp=[[active.length,"進行中專案"],[live.length,"已上線"],[totalSaved,"每月節省小時"],[totalUsage,"每月使用次數"]];
+  const s2=[titleOf("總覽")];
+  kp.forEach((k,i)=>{ const x=64+i*292; s2.push(R(x,160,276,220,{fill:C.soft}),T(x,184,276,110,k[0],{size:72,bold:true,color:C.accent,align:"center",valign:"middle"}),T(x,300,276,44,k[1],{size:22,align:"center",valign:"middle"})); });
+  const flagged=all.filter(p=>isOver(p)||isStale(p)).length;
+  s2.push(T(64,430,1152,150,"目前共 "+active.length+" 個專案在推進，其中 "+live.length+" 個已上線，合計每月節省約 "+totalSaved+" 小時。"+(flagged?"有 "+flagged+" 個專案超過時間盒或停滯，需要決定下一步。":"所有專案都在時程內。"),{size:26}));
+  slides.push({name:"總覽",shapes:s2});
+
+  // 3 pipeline
+  const s3=[titleOf("專案在哪一關")];
+  STAGES.forEach((s,i)=>{
+    const x=64+i*166, ps=active.filter(p=>p.stage===s.k);
+    s3.push(R(x,140,156,104,{fill:RAMP[i]}),
+      T(x,146,156,58,ps.length,{size:40,bold:true,color:rampInk(i),align:"center",valign:"middle"}),
+      T(x,204,156,34,(i+1)+" "+s.s,{size:18,color:rampInk(i),align:"center",valign:"middle"}));
+    const names=ps.slice(0,8).map(p=>cut(nm(p),9));
+    if(ps.length>8) names.push("另 "+(ps.length-8)+" 項");
+    s3.push(T(x+4,260,152,400,names.length?names.join("\n"):"—",{size:16,color:names.length?C.ink:C.muted}));
+  });
+  slides.push({name:"專案管線",shapes:s3});
+
+  // 4 timeline
+  if(active.length){
+    const now=new Date();
+    const from=dnum(ymd(new Date(now.getFullYear(),now.getMonth()-1,1)));
+    const to=dnum(ymd(new Date(now.getFullYear(),now.getMonth()+3,0)));
+    const TX=344, TW=872, ppd=TW/(to-from+1);
+    const X=d=>TX+(Math.max(from,Math.min(to+1,d))-from)*ppd;
+    const rows=active.slice(0,10), top=150, rh=44, bottom=top+40+rows.length*rh;
+    const s4=[titleOf("時程")];
+    for(let d=new Date(now.getFullYear(),now.getMonth()-1,1); dnum(ymd(d))<=to; d=new Date(d.getFullYear(),d.getMonth()+1,1)){
+      const x=X(dnum(ymd(d)));
+      s4.push(Ln(x,top,0,bottom-top),T(x+6,top,140,28,(d.getMonth()+1)+" 月",{size:14,color:C.muted}));
+    }
+    rows.forEach((p,r)=>{
+      const y=top+40+r*rh;
+      s4.push(Ln(64,y+rh,1152,0));
+      s4.push(T(64,y+4,268,rh-8,cut(nm(p),14),{size:16,valign:"middle"}));
+      ganttSegments(p,t).forEach(g=>{
+        const x1=X(g.s), w=X(g.e)-x1; if(w<=0.5) return;
+        if(g.k==="plan") s4.push(R(x1,y+11,w,22,{line:C.accent,dash:true,lineW:1.5}));
+        else { const si=+g.k.slice(1)-1; s4.push(R(x1,y+11,w,22,{fill:g.k==="over"?C.warn:g.k==="parked"?C.line:RAMP[si]})); 
+          if(w>56&&g.label) s4.push(T(x1+4,y+11,w-8,22,g.label,{size:12,valign:"middle",color:g.k==="over"?C.white:g.k==="parked"?C.muted:rampInk(si)})); }
+      });
+      if(p.due){ const d=dnum(p.due); if(d>=from&&d<=to) s4.push(R(X(d)+ppd/2-6,y+16,12,12,{fill:C.ink,rot:45})); }
+    });
+    if(t>=from&&t<=to) s4.push(Ln(X(t)+ppd/2,top,0,bottom-top,{color:C.danger,width:2}));
+    const ly=Math.min(bottom+18,630);
+    s4.push(R(64,ly+6,22,12,{fill:RAMP[3]}),T(92,ly,170,24,"實際進度",{size:14,color:C.muted,valign:"middle"}),
+      R(240,ly+6,22,12,{line:C.accent,dash:true,lineW:1.5}),T(268,ly,190,24,"依時間盒推估",{size:14,color:C.muted,valign:"middle"}),
+      R(440,ly+6,22,12,{fill:C.warn}),T(468,ly,170,24,"超過時間盒",{size:14,color:C.muted,valign:"middle"}),
+      R(624,ly+6,12,12,{fill:C.ink,rot:45}),T(644,ly,170,24,"預計交付日",{size:14,color:C.muted,valign:"middle"}),
+      Ln(800,ly,0,24,{color:C.danger,width:2}),T(810,ly,100,24,"今天",{size:14,color:C.muted,valign:"middle"}));
+    if(active.length>10) s4.push(T(940,ly,276,24,"另有 "+(active.length-10)+" 項未列出",{size:14,color:C.muted,align:"right",valign:"middle"}));
+    slides.push({name:"時程",shapes:s4});
+  }
+
+  // sprint
+  const spA=activeSprint(), spC=closedSprints(), spS=spA||spC[spC.length-1];
+  if(spS){
+    const its=sprintItems(spS);
+    const doneIts=spA?its.filter(i=>i.status==="完成"):[];
+    const dp=spA?ptsOf(doneIts):(+spS.completedPoints||0), tp=spA?ptsOf(its):(+spS.committedPoints||0);
+    const sd=sprintDay(spS);
+    const sh=[titleOf("衝刺進度"),
+      T(64,104,1152,32,"第 "+spS.no+" 次衝刺｜"+md(spS.start)+" 至 "+md(spS.end)+(spA?"，第 "+sd.d+"／"+sd.L+" 天":"（已結束）"),{size:18,color:C.muted}),
+      T(64,160,680,30,"衝刺目標",{size:20,bold:true,color:C.accent}),
+      T(64,194,680,90,cut(spS.goal||"（沒有寫衝刺目標）",60),{size:26,bold:true})];
+    if(spA){
+      const lines=doneIts.slice(0,7).map(i=>"• "+cut(i.title,26)+"（"+(i.points||0)+" 點）");
+      if(doneIts.length>7) lines.push("另 "+(doneIts.length-7)+" 項");
+      sh.push(T(64,300,680,30,"已完成",{size:20,bold:true,color:C.accent}),T(64,336,680,300,lines.length?lines.join("\n"):"尚未有完成的項目",{size:18,color:lines.length?C.ink:C.muted}));
+    } else {
+      sh.push(T(64,300,680,30,"回顧：下次嘗試",{size:20,bold:true,color:C.accent}),T(64,336,680,120,cut(spS.try||"–",80),{size:18}),
+              T(64,470,680,30,"檢視紀錄",{size:20,bold:true,color:C.accent}),T(64,506,680,130,cut(spS.review||"–",110),{size:18}));
+    }
+    sh.push(R(800,160,416,150,{fill:C.soft}),T(824,170,368,90,dp+"／"+tp,{size:56,bold:true,color:C.accent,valign:"middle"}),T(824,258,368,36,"完成點數／承諾點數",{size:16,color:C.muted}));
+    const vs=spC.slice(-6);
+    if(vs.length){
+      const mx=Math.max(1,...vs.map(s=>Math.max(+s.committedPoints||0,+s.completedPoints||0)));
+      const top=380,bot=600,gw=416/vs.length,bw=Math.min(22,gw/3);
+      sh.push(T(800,336,416,30,"過去衝刺：承諾與完成點數",{size:16,bold:true}),Ln(800,bot,416,0));
+      vs.forEach((s,i)=>{ const x=800+i*gw+gw/2, a=+s.committedPoints||0, b=+s.completedPoints||0, ha=(bot-top)*a/mx, hb=(bot-top)*b/mx;
+        if(ha>0) sh.push(R(x-bw-1,bot-ha,bw,ha,{fill:RAMP[1]}));
+        if(hb>0) sh.push(R(x+1,bot-hb,bw,hb,{fill:C.accent}));
+        sh.push(T(x-gw/2,bot+6,gw,22,"第 "+s.no+" 次",{size:12,color:C.muted,align:"center"})); });
+      sh.push(R(800,640,18,10,{fill:RAMP[1]}),T(824,634,90,22,"承諾",{size:12,color:C.muted,valign:"middle"}),R(900,640,18,10,{fill:C.accent}),T(924,634,90,22,"完成",{size:12,color:C.muted,valign:"middle"}));
+    }
+    slides.push({name:"衝刺進度",shapes:sh});
+  }
+
+  // 5 priority
+  const cand=all.filter(p=>{const i=stageIdx(p.stage); return i>=0&&i<=2&&score(p)!=null;}).sort((a,b)=>score(b)-score(a));
+  if(cand.length){
+    const rows=cand.slice(0,8).map((p,i)=>[i+1,cut(nm(p),20),p.unit||"",STAGES[stageIdx(p.stage)].s,score(p),baseHours(p)??"–"]);
+    slides.push({name:"優先順序",shapes:[titleOf("待評估專案的優先順序"),
+      T(64,104,1152,32,"依優先分數排序，滿分 30。現況每月耗時是導入前的基準值。",{size:18,color:C.muted}),
+      {t:"table",x:64,y:160,w:1152,colW:[90,380,190,150,150,192],rowH:52,size:18,align:["right","left","left","left","right","right"],
+       head:["排名","專案","提案單位","關卡","優先分數","現況每月耗時（時）"],rows}].concat(cand.length>8?[T(64,640,1152,28,"另有 "+(cand.length-8)+" 項未列出",{size:14,color:C.muted})]:[])});
+  }
+
+  // 6 per-project
+  const det=deckCfg.detail==="none"?[]:deckCfg.detail==="all"?active:active.filter(p=>stageIdx(p.stage)>=3);
+  det.forEach(p=>{
+    const i=stageIdx(p.stage), ck=stageClock(p);
+    const sh=[T(64,36,1152,60,cut(nm(p),30),{size:36,bold:true,valign:"middle"}),
+      T(64,96,1152,30,[p.unit,p.owner].filter(Boolean).join("／")+(p.unit||p.owner?"　":"")+"目前在「"+p.stage+"」",{size:18,color:C.muted})];
+    const step=(1152-36)/6;
+    sh.push(Ln(82,168,step*6,0,{color:C.line,width:2}));
+    STAGES.forEach((s,j)=>{
+      const cx=82+j*step;
+      sh.push(E(cx-14,154,28,28,{fill:j<i?"#96CBBC":j===i?C.accent:C.white,line:j>i?C.line:undefined,lineW:2}));
+      sh.push(T(cx-60,188,120,24,s.s,{size:14,align:"center",color:j===i?C.ink:C.muted,bold:j===i}));
+    });
+    const blk=(y,h,label,val)=>[T(64,y,680,30,label,{size:20,bold:true,color:C.accent}),T(64,y+32,680,h,val?cut(val,h>90?150:80):"尚未填寫",{size:18,color:val?C.ink:C.muted})];
+    sh.push(...blk(240,100,"要解決的問題",p.problem), ...blk(390,70,"成功標準",p.success), ...blk(510,70,"下一步",p.next));
+    const ks=[[score(p)??"–","優先分數（滿分 30）"],[baseHours(p)??"–","現況每月耗時（小時）"],[saved(p)??"–","每月節省時數"]];
+    ks.forEach((k,j)=>{ const y=240+j*110; sh.push(R(800,y,416,96,{fill:C.soft}),T(824,y+8,180,80,k[0],{size:40,bold:true,color:C.accent,valign:"middle"}),T(1000,y+8,200,80,k[1],{size:16,color:C.muted,valign:"middle"})); });
+    if(ck&&ck.i<6) sh.push(T(800,580,416,56,"已在本關第 "+(ck.days+1)+" 天，時間盒 "+ck.box+" 天"+(ck.over?"，超過 "+ck.over+" 天":""),{size:16,color:ck.over?C.warn:C.muted,bold:!!ck.over}));
+    slides.push({name:"專案："+cut(nm(p),12),shapes:sh});
+  });
+
+  // 7 results
+  if(live.length){
+    const rows=live.slice(0,8).map(p=>[cut(nm(p),18),p.unit||"",p.launch||"–",num(p.usage)===""?"–":num(p.usage),baseHours(p)??"–",saved(p)??"–"]);
+    rows.push(["合計","","",totalUsage,"",totalSaved]);
+    slides.push({name:"上線成效",shapes:[titleOf("上線成效"),
+      T(64,104,1152,32,"每月節省時數 = 每月發生次數 ×（導入前 − 導入後每次耗時）÷ 60",{size:18,color:C.muted}),
+      {t:"table",x:64,y:160,w:1152,colW:[360,180,170,150,150,142],rowH:52,size:18,align:["left","left","left","right","right","right"],boldLast:true,
+       head:["專案","提案單位","上線日","每月使用","導入前每月時數","每月節省時數"],rows}]});
+  }
+
+  // 8 risks & asks
+  const risks=[];
+  all.filter(isOver).forEach(p=>risks.push("• "+cut(nm(p),16)+"：超過時間盒 "+stageClock(p).over+" 天"));
+  all.filter(p=>isStale(p)&&!isOver(p)).forEach(p=>risks.push("• "+cut(nm(p),16)+"："+daysSince(p.updatedAt)+" 天未更新"));
+  const n5=all.filter(p=>p.stage===STAGES[4].k).length;
+  if(n5>WIP) risks.unshift("• 建置中 "+n5+" 項，超過同時上限 "+WIP+" 項");
+  const asks=deckCfg.asks.trim()?deckCfg.asks.trim().split(/\n+/).map(s=>"• "+s.replace(/^[-•]\s*/,"")):[];
+  slides.push({name:"風險與協助",shapes:[titleOf("風險與需要的協助"),
+    T(64,140,560,36,"需要留意",{size:22,bold:true,color:C.accent}),
+    T(64,186,560,450,risks.length?risks.slice(0,10).join("\n"):"目前沒有超時或停滯的專案。",{size:18,color:risks.length?C.ink:C.muted}),
+    R(672,140,544,496,{fill:C.soft}),
+    T(696,160,496,36,"需要的協助",{size:22,bold:true,color:C.accent}),
+    T(696,206,496,410,asks.length?asks.join("\n"):"（在簡報設定中填寫）",{size:20,color:asks.length?C.ink:C.muted})]});
+
+  // footer
+  slides.forEach((s,i)=>{ if(i===0) return;
+    s.shapes.push(T(64,672,900,28,deckCfg.title||"AI 導入進度報告",{size:13,color:C.muted,valign:"middle"}),T(1100,672,116,28,(i+1)+" / "+slides.length,{size:13,color:C.muted,align:"right",valign:"middle"}));
+  });
+  return slides;
+}
+
+/* ================= deck: HTML renderer ================= */
+function shapeHTML(s){
+  const box="left:"+s.x+"px;top:"+s.y+"px;width:"+s.w+"px;height:"+s.h+"px;";
+  if(s.t==="rect"||s.t==="ellipse"){
+    return '<div style="position:absolute;'+box+'background:'+(s.fill||"transparent")+';'+(s.line?'border:'+(s.lineW||1)+'px '+(s.dash?"dashed":"solid")+' '+s.line+';':'')+'box-sizing:border-box;'+(s.t==="ellipse"?"border-radius:50%;":"")+(s.rot?"transform:rotate("+s.rot+"deg);":"")+'"></div>';
+  }
+  if(s.t==="line"){
+    return '<div style="position:absolute;left:'+s.x+'px;top:'+s.y+'px;width:'+(s.w||0)+'px;height:'+(s.h||0)+'px;'+(s.w?'border-top':'border-left')+':'+s.width+'px solid '+s.color+'"></div>';
+  }
+  if(s.t==="text"){
+    const jc=s.valign==="middle"?"center":s.valign==="bottom"?"flex-end":"flex-start";
+    return '<div class="tx" style="'+box+'justify-content:'+jc+';font-size:'+s.size+'px;color:'+s.color+';text-align:'+s.align+';font-weight:'+(s.bold?700:400)+'"><div>'+esc(s.text)+'</div></div>';
+  }
+  if(s.t==="table"){
+    const cell=(v,j,tag,bold)=>'<'+tag+' style="height:'+s.rowH+'px;text-align:'+s.align[j]+';'+(tag==="th"?"background:"+C.soft+";color:"+C.ink+";font-weight:700;":"")+(bold?"font-weight:700;":"")+'">'+esc(v)+'</'+tag+'>';
+    return '<table style="left:'+s.x+'px;top:'+s.y+'px;width:'+s.w+'px;font-size:'+s.size+'px"><colgroup>'+s.colW.map(w=>'<col style="width:'+w+'px">').join("")+'</colgroup>'+
+      '<tr>'+s.head.map((h,j)=>cell(h,j,"th")).join("")+'</tr>'+
+      s.rows.map((r,ri)=>'<tr>'+r.map((v,j)=>cell(v,j,"td",s.boldLast&&ri===s.rows.length-1)).join("")+'</tr>').join("")+'</table>';
+  }
+  return "";
+}
+function slideHTML(sl){ return '<div class="slide">'+sl.shapes.map(shapeHTML).join("")+'</div>'; }
+function fitSlides(){
+  document.querySelectorAll(".slide-frame").forEach(f=>{ const s=f.firstElementChild; if(s) s.style.transform="scale("+(f.clientWidth/1280)+")"; });
+}
+let deckCache=[];
+function renderDeck(){
+  deckCache=buildDeck();
+  const ro=canEdit?"":" disabled";
+  $("#main").innerHTML='<div class="deck-layout"><aside class="panel deck-cfg"><h2>簡報設定</h2>'+
+    '<div class="f"><label for="d-title">標題</label><input id="d-title" data-deck="title" value="'+esc(deckCfg.title)+'"'+ro+'></div>'+
+    '<div class="f"><label for="d-aud">副標題<small>例如：11 月主管會議</small></label><input id="d-aud" data-deck="audience" value="'+esc(deckCfg.audience)+'"'+ro+'></div>'+
+    '<div class="f"><label for="d-det">專案詳細頁</label><select id="d-det" data-deck="detail"'+ro+'>'+
+      [["validated","驗證以後的專案（關卡 4–7）"],["all","所有進行中的專案"],["none","不加"]].map(o=>'<option value="'+o[0]+'"'+(o[0]===deckCfg.detail?" selected":"")+'>'+o[1]+'</option>').join("")+'</select></div>'+
+    '<div class="f"><label for="d-asks">需要的協助<small>一行一項</small></label><textarea id="d-asks" data-deck="asks" rows="4" placeholder="例如：請資安單位確認客服資料能否使用"'+ro+'>'+esc(deckCfg.asks)+'</textarea></div>'+
+    '<div class="actions"><button class="btn primary" data-act="present">播放簡報</button><button class="btn" data-act="pptx">下載 PowerPoint</button></div>'+
+    '<p class="hint" style="margin:10px 0 0">簡報依目前的專案資料即時產生，共 '+deckCache.length+' 頁。</p></aside>'+
+    '<div class="slides">'+deckCache.map((s,i)=>'<figure class="slide-item"><figcaption>'+(i+1)+'. '+esc(s.name)+'</figcaption><div class="slide-frame" data-present="'+i+'">'+slideHTML(s)+'</div></figure>').join("")+'</div></div>';
+  requestAnimationFrame(fitSlides);
+}
+
+/* ================= present mode ================= */
+let pIdx=0;
+function present(i){
+  deckCache=buildDeck(); pIdx=Math.max(0,Math.min(deckCache.length-1,i||0));
+  const root=$("#present-root");
+  root.innerHTML='<div class="present" role="dialog" aria-label="簡報播放"><div class="slide-frame" id="p-frame"></div><div class="pbar"><button data-act="p-prev">上一頁</button><span id="p-count"></span><button data-act="p-next">下一頁</button><button data-act="p-close">結束</button></div></div>';
+  drawPresent();
+  const el=root.firstElementChild; try{ el.requestFullscreen&&el.requestFullscreen().catch(()=>{}); }catch(e){}
+}
+function drawPresent(){
+  const fr=$("#p-frame"); if(!fr) return;
+  const k=Math.min(window.innerWidth/1280,window.innerHeight/720);
+  fr.style.width=(1280*k)+"px"; fr.style.height=(720*k)+"px";
+  fr.innerHTML=slideHTML(deckCache[pIdx]); fr.firstElementChild.style.transform="scale("+k+")";
+  $("#p-count").textContent=(pIdx+1)+" / "+deckCache.length;
+}
+function closePresent(){ $("#present-root").innerHTML=""; try{ document.fullscreenElement&&document.exitFullscreen(); }catch(e){} }
+
+/* ================= deck: PPTX ================= */
+let pptxLoading=null;
+function loadPptx(){
+  if(window.PptxGenJS) return Promise.resolve();
+  if(pptxLoading) return pptxLoading;
+  pptxLoading=new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"; s.onload=res; s.onerror=()=>{ pptxLoading=null; rej(); }; document.head.appendChild(s); });
+  return pptxLoading;
+}
+async function downloadPptx(){
+  notice("正在產生 PowerPoint…");
+  try{ await loadPptx(); }catch(e){ notice("無法載入產生 PowerPoint 的元件，請確認網路連線後再試。","err"); return; }
+  const slides=buildDeck();
+  const pptx=new window.PptxGenJS(); pptx.layout="LAYOUT_WIDE"; pptx.title=deckCfg.title||"AI 導入進度報告";
+  const IN=v=>v/96, PT=v=>Math.round(v*0.75*10)/10, HX=c=>(c||"").replace("#","");
+  const FONT="Microsoft JhengHei";
+  slides.forEach(sl=>{
+    const s=pptx.addSlide(); s.background={color:"FFFFFF"};
+    sl.shapes.forEach(o=>{
+      if(o.t==="rect"||o.t==="ellipse"){
+        s.addShape(o.t==="rect"?pptx.ShapeType.rect:pptx.ShapeType.ellipse,{x:IN(o.x),y:IN(o.y),w:IN(o.w),h:IN(o.h),rotate:o.rot||0,
+          fill:o.fill?{color:HX(o.fill)}:{color:"FFFFFF",transparency:100},
+          line:o.line?{color:HX(o.line),width:o.lineW||1,dashType:o.dash?"dash":"solid"}:{type:"none"}});
+      } else if(o.t==="line"){
+        s.addShape(pptx.ShapeType.line,{x:IN(o.x),y:IN(o.y),w:IN(o.w||0),h:IN(o.h||0),line:{color:HX(o.color),width:o.width}});
+      } else if(o.t==="text"){
+        s.addText(o.text,{x:IN(o.x),y:IN(o.y),w:IN(o.w),h:IN(o.h),fontFace:FONT,fontSize:PT(o.size),color:HX(o.color),bold:!!o.bold,align:o.align,valign:o.valign,margin:0,lineSpacingMultiple:1.15});
+      } else if(o.t==="table"){
+        const head=o.head.map((h,j)=>({text:String(h),options:{bold:true,fill:{color:HX(C.soft)},align:o.align[j]}}));
+        const rows=o.rows.map((r,ri)=>r.map((v,j)=>({text:String(v),options:{align:o.align[j],bold:!!(o.boldLast&&ri===o.rows.length-1)}})));
+        s.addTable([head].concat(rows),{x:IN(o.x),y:IN(o.y),w:IN(o.w),colW:o.colW.map(IN),rowH:IN(o.rowH),fontFace:FONT,fontSize:PT(o.size),color:HX(C.ink),valign:"middle",border:{type:"solid",pt:0.75,color:HX(C.line)},margin:[0,0.1,0,0.1]});
+      }
+    });
+  });
+  try{
+    const blob=await pptx.write({outputType:"blob"});
+    await saveFile((deckCfg.title||"AI導入進度報告")+"-"+today()+".pptx",blob);
+    $("#notices").innerHTML="";
+  }catch(e){ notice("產生 PowerPoint 時發生錯誤，請再試一次。","err"); }
+}
+
+/* ================= drawer ================= */
+function fieldHTML(p,f){
+  const v=p[f.k];
+  const hint=f.hint?'<small>'+esc(f.hint)+'</small>':"";
+  if(f.t==="score") return '<div class="f"><label>'+esc(f.h)+hint+'</label><div class="score" role="group" aria-label="'+esc(f.h)+'">'+[1,2,3,4,5].map(n=>'<button type="button" data-score="'+f.k+'" data-v="'+n+'" aria-pressed="'+(v===n)+'">'+n+'</button>').join("")+'</div></div>';
+  const lab='<label for="f-'+f.k+'">'+esc(f.h)+hint+'</label>';
+  if(f.t==="long") return '<div class="f">'+lab+'<textarea id="f-'+f.k+'" data-f="'+f.k+'"'+(f.tall?' class="tall"':"")+'>'+esc(v)+'</textarea></div>';
+  const type=f.t==="num"?"number":f.t==="date"?"date":"text";
+  return '<div class="f">'+lab+'<input id="f-'+f.k+'" type="'+type+'" data-f="'+f.k+'" value="'+esc(v)+'"'+(f.t==="num"?' inputmode="decimal" min="0" step="any"':"")+'></div>';
+}
+function renderItemDrawer(){
+  const root=$("#drawer-root"), it=items.get(openItem);
+  if(!it){ openItem=null; root.innerHTML=""; return; }
+  const sp=it.sprintId&&sprints.get(it.sprintId);
+  const story=it.type==="使用者故事";
+  root.innerHTML='<div class="scrim" data-act="close"></div><aside class="drawer'+(canEdit?"":" ro")+'" role="dialog" aria-modal="true" aria-label="工作項目">'+
+    '<div class="dr-head"><input id="i-title" data-if="title" value="'+esc(it.title)+'" placeholder="工作名稱" aria-label="工作名稱"><button class="btn ghost" data-act="close">關閉</button></div><div class="dr-body">'+
+    '<div class="stage-ctl"><select data-if="status" aria-label="狀態">'+ISTAT.map(s=>'<option'+(s===(it.status||"待辦")?" selected":"")+'>'+s+'</option>').join("")+'</select>'+
+      '<select data-if="type" aria-label="類型">'+ITYPES.map(s=>'<option'+(s===(it.type||"任務")?" selected":"")+'>'+s+'</option>').join("")+'</select>'+
+      '<select data-if="projectId" aria-label="所屬專案">'+projOptions(it.projectId||"")+'</select></div>'+
+    '<p class="hint" style="margin:0 0 10px">'+(sp?"在「第 "+sp.no+" 次衝刺」"+(sp.status==="closed"?"（已結束）":""):"在待辦清單")+(it.doneAt?"，"+esc(it.doneAt)+" 完成":"")+'</p>'+
+    '<div class="f" style="margin-top:0"><label>點數<small>相對大小：1 很小、3 普通、8 很大；13 代表應該再拆小</small></label><div class="score">'+PTS.map(n=>'<button type="button" data-ipts="'+n+'" aria-pressed="'+(+it.points===n)+'">'+n+'</button>').join("")+'</div></div>'+
+    (story?'<div class="f"><label for="i-asA">身為</label><input id="i-asA" data-if="asA" value="'+esc(it.asA)+'" placeholder="業務助理"></div><div class="f"><label for="i-iWant">我想要</label><input id="i-iWant" data-if="iWant" value="'+esc(it.iWant)+'" placeholder="上傳報價單後自動標出錯誤欄位"></div><div class="f"><label for="i-soThat">以便</label><input id="i-soThat" data-if="soThat" value="'+esc(it.soThat)+'" placeholder="送出前不必逐欄人工核對"></div>':"")+
+    '<div class="f"><label for="i-ac">驗收條件<small>一行一條，全部做到才算完成</small></label><textarea id="i-ac" data-if="ac" class="tall" placeholder="20 張真實報價單中，至少 18 張正確標出錯誤">'+esc(it.ac)+'</textarea></div>'+
+    '<div class="f"><label for="i-notes">備註<small>卡住的原因、相關連結</small></label><textarea id="i-notes" data-if="notes">'+esc(it.notes)+'</textarea></div>'+
+    '<div class="dr-foot">'+(it.projectId&&projects.get(it.projectId)?'<button class="btn" data-act="item-to-proj">回到專案</button>':"")+
+      (canEdit?(confirmItemDelete?'<button class="btn danger" data-act="item-del-yes">確定刪除這項工作</button><button class="btn ghost" data-act="item-del-no">取消</button>':'<button class="btn danger" data-act="item-del">刪除工作</button>'):"")+
+    '</div></div></aside>';
+}
+function renderDrawer(){
+  const root=$("#drawer-root");
+  if(openItem){ renderItemDrawer(); return; }
+  const p=openId&&projects.get(openId);
+  if(!p){ root.innerHTML=""; openId=null; return; }
+  const i=stageIdx(p.stage), g=gateStatus(p), ck=stageClock(p);
+  let gate="";
+  if(g){
+    gate='<div class="gate"><p class="q">過關問題：'+esc(STAGES[i].gate)+'</p>'+
+      (ck&&ck.i<6?'<p class="hint" style="margin:0 0 8px">已在本關第 '+(ck.days+1)+' 天，時間盒 '+ck.box+' 天（到 '+esc(ck.endStr)+'）。'+(ck.over?'<b style="color:var(--warn)">已超過 '+ck.over+' 天，請決定：砍範圍、延長一次並寫下理由，或暫停。</b>':'')+'</p>':"")+
+      '<ul>'+g.req.map(k=>'<li class="'+(empty(p[k])?"":"ok")+'">'+esc(F[k].h)+'</li>').join("")+'</ul>'+
+      (pendingAdvance===p.id?'<div class="warnbox">本關還缺：'+g.missing.map(k=>esc(F[k].h)).join("、")+'。確定要先進到下一關嗎？ <button class="btn" data-act="force-next">仍要前進</button> <button class="btn ghost" data-act="cancel-next">先補資料</button></div>':"")+'</div>';
+  }
+  const secs=STAGES.map((s,si)=>{
+    const fs=FIELDS.filter(f=>f.s===si+1); if(!fs.length) return "";
+    const done=s.req.filter(k=>!empty(p[k])).length;
+    return '<details class="sec"'+(si===i||(i<0&&si===0)?" open":"")+'><summary>'+(si+1)+" "+esc(s.s)+'<span>'+done+'/'+s.req.length+'</span></summary><div class="in">'+fs.map(f=>fieldHTML(p,f)).join("")+'</div></details>';
+  }).join("");
+  const log=(p.decisions||[]).slice().reverse();
+  root.innerHTML='<div class="scrim" data-act="close"></div><aside class="drawer'+(canEdit?"":" ro")+'" role="dialog" aria-modal="true" aria-label="專案內容">'+
+    '<div class="dr-head"><input id="f-name" data-f="name" value="'+esc(p.name)+'" placeholder="專案名稱" aria-label="專案名稱"><button class="btn ghost" data-act="close">關閉</button></div>'+
+    '<div class="dr-body">'+
+      '<div class="stage-ctl"><select data-f="stage" aria-label="關卡">'+ALL_STAGES.map(k=>'<option'+(k===p.stage?" selected":"")+'>'+esc(k)+'</option>').join("")+'</select>'+
+        (canEdit&&i>0?'<button class="btn" data-act="prev">退回上一關</button>':"")+
+        (canEdit&&i>=0&&i<6?'<button class="btn primary" data-act="next">進到下一關</button>':"")+'</div>'+
+      gate+
+      '<div class="kpis"><div class="kpi"><b>'+(score(p)??"–")+'</b><span>優先分數（滿分 30）</span></div><div class="kpi"><b>'+(baseHours(p)??"–")+'</b><span>現況每月耗時（小時）</span></div><div class="kpi"><b>'+(saved(p)??"–")+'</b><span>每月節省時數</span></div></div>'+
+      '<div style="margin-bottom:12px">'+fieldHTML(p,F.next)+'</div>'+
+      secs+
+      (()=>{ const its=allX("items").filter(x=>x.projectId===p.id).sort((a,b)=>ISTAT.indexOf(a.status)-ISTAT.indexOf(b.status)||(a.rank||0)-(b.rank||0));
+        return '<details class="sec" open><summary>工作項目<span>'+its.filter(x=>x.status==="完成").length+'/'+its.length+' 完成</span></summary><div class="in">'+
+        (its.length?'<ul class="worklist">'+its.map(x=>'<li data-item="'+esc(x.id)+'"><span class="tag'+(x.status==="完成"?"":" muted")+'">'+esc(x.status||"待辦")+'</span><span class="grow">'+esc(x.title||"未命名工作")+'</span>'+(x.points?'<span class="hint">'+x.points+' 點</span>':"")+'</li>').join("")+'</ul>':'<p class="hint" style="margin:0">還沒有工作項目。把這個專案接下來要做的事拆成小項目，就能排進衝刺。</p>')+
+        (canEdit?'<div class="actions" style="margin-top:8px"><button class="btn" data-act="item-new-proj">新增工作項目</button></div>':"")+'</div></details>'; })()+
+      '<details class="sec" open><summary>決策紀錄<span>'+log.length+' 筆</span></summary><div class="in">'+
+        (canEdit?'<div class="log-add"><input id="log-in" placeholder="例如：決定先只做英文信件，中文下一版" aria-label="新增決策紀錄"><button class="btn" data-act="add-log">新增</button></div>':"")+
+        (log.length?'<ul class="log">'+log.map(e=>'<li><time>'+esc(e.d||"")+'</time><span>'+esc(e.t)+'</span></li>').join("")+'</ul>':'<p class="hint">還沒有紀錄。為什麼做、為什麼不做、為什麼砍範圍，都值得寫一句。</p>')+
+      '</div></details>'+
+      '<div class="dr-foot"><span class="hint">最後更新：'+(p.updatedAt?esc(ymd(new Date(p.updatedAt))):"–")+'</span>'+
+        (canEdit?(confirmDelete?'<button class="btn danger" data-act="delete-yes">確定刪除這個專案</button><button class="btn ghost" data-act="delete-no">取消</button>':'<button class="btn danger" data-act="delete">刪除專案</button>'):"")+
+      '</div></div></aside>';
+}
+function openItemDrawer(id){ openId=null; openItem=id; confirmItemDelete=false; renderDrawer(); setTimeout(()=>{ const el=$(".drawer .btn.ghost"); el&&el.focus({preventScroll:true}); },0); }
+function openProject(id){ openItem=null; openId=id; pendingAdvance=null; confirmDelete=false; renderDrawer(); setTimeout(()=>{ const el=$(".drawer .btn.ghost"); el&&el.focus({preventScroll:true}); },0); }
+function closeDrawer(){ if(openItem){ const k="items:"+openItem; if(timers[k]){ clearTimeout(timers[k]); delete timers[k]; const it=items.get(openItem); it&&writeX("items",it); } openItem=null; confirmItemDelete=false; renderDrawer(); return; } if(openId&&timers[openId]){ clearTimeout(timers[openId]); delete timers[openId]; writeNow(projects.get(openId)); } openId=null; renderDrawer(); }
+function moveStage(p,to,note){
+  const from=p.stage; if(from===to) return;
+  p.stage=to;
+  p.decisions=(p.decisions||[]).concat({d:today(),t:"從「"+from+"」移到「"+to+"」"+(note?"："+note:"")});
+  pendingAdvance=null; persist(p,true); renderDrawer();
+}
+function refreshKpis(p){
+  const k=document.querySelectorAll(".kpi b"); if(k.length<3) return;
+  k[0].textContent=score(p)??"–"; k[1].textContent=baseHours(p)??"–"; k[2].textContent=saved(p)??"–";
+  const g=gateStatus(p); if(g) document.querySelectorAll(".gate li").forEach((li,idx)=>{ li.className=empty(p[g.req[idx]])?"":"ok"; });
+}
+
+/* ================= events ================= */
+document.addEventListener("click",e=>{
+  const pr=document.querySelector(".present");
+  if(pr&&pr.contains(e.target)){
+    const b=e.target.closest("[data-act]");
+    if(b&&b.dataset.act==="p-close"){ closePresent(); return; }
+    if(b&&b.dataset.act==="p-prev"){ if(pIdx>0){pIdx--;drawPresent();} return; }
+    if(b&&b.dataset.act==="p-next"){ if(pIdx<deckCache.length-1){pIdx++;drawPresent();} return; }
+    if(!e.target.closest(".pbar")){ if(e.clientX<window.innerWidth/3){ if(pIdx>0){pIdx--;drawPresent();} } else if(pIdx<deckCache.length-1){pIdx++;drawPresent();} }
+    return;
+  }
+  const t=e.target.closest("[data-open],[data-act],[data-view],[data-jump],[data-score],[data-present],[data-item],[data-mv],[data-rank],[data-ipts]");
+  if(!t) return;
+  if(t.dataset.mv){ if(!canEdit) return; const it=items.get(t.dataset.mv); if(!it) return; const i=ISTAT.indexOf(it.status||"待辦")+(+t.dataset.dir); if(i>=0&&i<ISTAT.length){ setItemStatus(it,ISTAT[i]); renderShell(); } return; }
+  if(t.dataset.rank){ if(!canEdit) return; const list=backlogItems().filter(i=>blFilter==="all"||(i.projectId||"")===blFilter); const k=list.findIndex(i=>i.id===t.dataset.rank), j=k+(+t.dataset.dir);
+    if(k<0||j<0||j>=list.length) return; const a=list[k], b=list[j]; let ra=+a.rank||0, rb=+b.rank||0; if(ra===rb) rb=ra+(+t.dataset.dir); a.rank=rb; b.rank=ra; persistX("items",a,true); persistX("items",b,true); renderShell(); return; }
+  if(t.dataset.ipts){ const it=items.get(openItem); if(!it||!canEdit) return; const v=+t.dataset.ipts; it.points=(+it.points===v?"":v); persistX("items",it); renderShell(); renderDrawer(); return; }
+  if(t.dataset.item){ e.preventDefault(); openItemDrawer(t.dataset.item); return; }
+  if(t.dataset.open){ e.preventDefault(); openProject(t.dataset.open); return; }
+  if(t.dataset.view){ view=t.dataset.view; renderMain(); return; }
+  if(t.dataset.present){ present(+t.dataset.present); return; }
+  if(t.dataset.jump){ view="board"; renderMain(); const c=$("#col-"+t.dataset.jump); c&&c.scrollIntoView({behavior:"smooth",block:"nearest",inline:"start"}); return; }
+  const p=openId&&projects.get(openId);
+  if(t.dataset.score&&p&&canEdit){ const v=+t.dataset.v; p[t.dataset.score]=(p[t.dataset.score]===v?"":v); persist(p); renderDrawer(); return; }
+  switch(t.dataset.act){
+    case "dismiss": $("#notices").innerHTML=""; break;
+    case "new": newProject(); break;
+    case "close": closeDrawer(); break;
+    case "next": { const g=gateStatus(p), i=stageIdx(p.stage); if(g.missing.length){ pendingAdvance=p.id; renderDrawer(); } else moveStage(p,STAGES[i+1].k); break; }
+    case "force-next": moveStage(p,STAGES[stageIdx(p.stage)+1].k,"本關資料未齊即前進"); break;
+    case "cancel-next": pendingAdvance=null; renderDrawer(); break;
+    case "prev": moveStage(p,STAGES[stageIdx(p.stage)-1].k); break;
+    case "add-log": { const inp=$("#log-in"); const v=inp.value.trim(); if(!v) return; p.decisions=(p.decisions||[]).concat({d:today(),t:v}); persist(p,true); renderDrawer(); break; }
+    case "delete": confirmDelete=true; renderDrawer(); break;
+    case "delete-no": confirmDelete=false; renderDrawer(); break;
+    case "delete-yes": { const n=nm(p); removeProject(p.id); openId=null; renderAll(); notice("已刪除「"+n+"」。"); break; }
+    case "copy-report": copyText($("#report-md")); break;
+    case "save-report": saveFile("AI導入月報-"+reportMonth+".md",$("#report-md").value); break;
+    case "g-settings": gSettings=!gSettings; renderMain(); break;
+    case "tb-reset": TB=DEFAULT_TB.slice(); WIP=2; saveSettings(); renderShell(); break;
+    case "present": present(0); break;
+    case "bl-add": { const ti=$("#bl-title").value.trim(); if(!ti){ $("#bl-title").focus(); return; } newItem({title:ti,projectId:$("#bl-proj").value,type:$("#bl-type").value,points:num($("#bl-pts").value)}); renderShell(); setTimeout(()=>{ const el=$("#bl-title"); el&&el.focus(); },0); break; }
+    case "qa-add": { const sp=activeSprint(); const ti=$("#qa-title").value.trim(); if(!sp||!ti){ $("#qa-title")&&$("#qa-title").focus(); return; } newItem({title:ti,projectId:$("#qa-proj").value,points:num($("#qa-pts").value),sprintId:sp.id}); renderShell(); notice("已加入這次衝刺。範圍變更請在回顧時檢討原因。"); break; }
+    case "sp-start": {
+      const d=planDraft; if(!d) return;
+      if(!d.goal.trim()){ notice("請先寫一句衝刺目標。","warn"); $("#sp-goal").focus(); return; }
+      const chosen=backlogItems().filter(i=>d.sel.has(i.id));
+      if(!chosen.length){ notice("請至少勾選一項工作。","warn"); return; }
+      const len=Math.max(5,parseInt(d.len,10)||SPRINT_LEN), start=d.start||today(), no=nextSprintNo();
+      const sp={id:newIdX("sprints"),no,name:"第 "+no+" 次衝刺",start,end:dstr(dnum(start)+len-1),goal:d.goal.trim(),status:"active",createdAt:new Date().toISOString()};
+      persistX("sprints",sp,true);
+      chosen.forEach(i=>{ i.sprintId=sp.id; i.status="待辦"; persistX("items",i,true); });
+      planDraft=null; closing=false; renderShell();
+      const unready=chosen.filter(i=>!isReady(i)).length;
+      notice("第 "+no+" 次衝刺開始，共 "+ptsOf(chosen)+" 點。"+(unready?"其中 "+unready+" 項還沒就緒，請先補點數或驗收條件。":""),unready?"warn":"");
+      break; }
+    case "sp-close-open": closing=true; closeDraft={review:"",keep:"",problem:"",try:""}; renderMain(); break;
+    case "sp-close-cancel": closing=false; renderMain(); break;
+    case "sp-close": {
+      const sp=activeSprint(); if(!sp) return;
+      const its=sprintItems(sp), done=its.filter(i=>i.status==="完成"), un=its.filter(i=>i.status!=="完成");
+      Object.assign(sp,{status:"closed",committedPoints:ptsOf(its),completedPoints:ptsOf(done),review:closeDraft.review.trim(),keep:closeDraft.keep.trim(),problem:closeDraft.problem.trim(),try:closeDraft.try.trim(),closedAt:new Date().toISOString()});
+      persistX("sprints",sp,true);
+      let r=minRank()-un.length-1; un.sort((a,b)=>(a.rank||0)-(b.rank||0)).forEach(i=>{ i.sprintId=""; i.status="待辦"; i.rank=r++; persistX("items",i,true); });
+      closing=false; renderShell(); notice("第 "+sp.no+" 次衝刺已結束：完成 "+sp.completedPoints+"／"+sp.committedPoints+" 點。"); break; }
+    case "item-new-proj": { const pid=openId; const it=newItem({projectId:pid}); renderShell(); openItemDrawer(it.id); setTimeout(()=>{ const el=$("#i-title"); el&&el.focus(); },30); break; }
+    case "item-to-proj": { const it=items.get(openItem); if(it&&it.projectId) openProject(it.projectId); break; }
+    case "item-del": confirmItemDelete=true; renderDrawer(); break;
+    case "item-del-no": confirmItemDelete=false; renderDrawer(); break;
+    case "item-del-yes": { const it=items.get(openItem); if(it){ removeX("items",it.id); notice("已刪除「"+(it.title||"未命名工作")+"」。"); } openItem=null; confirmItemDelete=false; renderAll(); break; }
+    case "pptx": downloadPptx(); break;
+  }
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.id==="file"){ restoreBackup(t.files[0]); t.value=""; return; }
+  if(t.id==="month"){ reportMonth=t.value||today().slice(0,7); renderMain(); return; }
+  if(t.id==="g-range"){ gRange=t.value; renderMain(); return; }
+  if(t.id==="g-parked"){ gShowParked=t.checked; renderMain(); return; }
+  if(t.dataset&&t.dataset.tb!==undefined){ if(!canEdit) return; const i=+t.dataset.tb, v=parseInt(t.value,10); TB[i]=v>0?v:DEFAULT_TB[i]; saveSettings(); renderShell(); return; }
+  if(t.id==="g-wip"){ if(!canEdit) return; const v=parseInt(t.value,10); WIP=v>0?v:2; saveSettings(); renderShell(); return; }
+  if(t.dataset&&t.dataset.pick){ if(!planDraft) return; t.checked?planDraft.sel.add(t.dataset.pick):planDraft.sel.delete(t.dataset.pick); const el=$("#sp-sum"); if(el) el.textContent=ptsOf(backlogItems().filter(i=>planDraft.sel.has(i.id))); return; }
+  if(t.id==="bl-filter"){ blFilter=t.value; renderMain(); return; }
+  if(t.id==="bl-done"){ blShowDone=t.checked; renderMain(); return; }
+  if(t.id==="set-splen"||t.id==="set-iwip"){ if(!canEdit) return; const v=parseInt(t.value,10); if(t.id==="set-splen") SPRINT_LEN=v>=5?v:14; else ITEM_WIP=v>0?v:3; if(planDraft) planDraft.len=SPRINT_LEN; saveSettings(); renderShell(); return; }
+  if(t.dataset&&t.dataset.if){ const it=items.get(openItem); if(!it||!canEdit) return; const k=t.dataset.if;
+    if(k==="status"){ setItemStatus(it,t.value); renderShell(); renderDrawer(); return; }
+    it[k]=t.value.trim(); persistX("items",it); renderShell(); if(k==="type"||k==="projectId") renderDrawer(); return; }
+  if(t.dataset&&t.dataset.deck){ if(!canEdit) return; deckCfg[t.dataset.deck]=t.value; saveDeckCfg(); renderDeck(); return; }
+  const k=t.dataset&&t.dataset.f; const p=openId&&projects.get(openId);
+  if(!k||!p||!canEdit) return;
+  if(k==="stage"){ moveStage(p,t.value); return; }
+  const f=F[k]; p[k]=f.t==="num"?num(t.value):t.value.trim();
+  persist(p);
+  setTimeout(()=>{ if(!document.querySelector(".drawer :focus")) renderDrawer(); else refreshKpis(p); },0);
+});
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(planDraft&&t.id==="sp-goal") planDraft.goal=t.value;
+  if(planDraft&&t.id==="sp-start") planDraft.start=t.value;
+  if(planDraft&&t.id==="sp-len") planDraft.len=t.value;
+  if(t.dataset&&t.dataset.cl) closeDraft[t.dataset.cl]=t.value;
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&(e.target.id==="bl-title"||e.target.id==="qa-title")){ e.preventDefault(); const b=document.querySelector(e.target.id==="bl-title"?'[data-act="bl-add"]':'[data-act="qa-add"]'); b&&b.click(); return; }
+  if(document.querySelector(".present")){
+    if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){ e.preventDefault(); if(pIdx<deckCache.length-1){pIdx++;drawPresent();} }
+    else if(e.key==="ArrowLeft"||e.key==="PageUp"){ e.preventDefault(); if(pIdx>0){pIdx--;drawPresent();} }
+    else if(e.key==="Escape") closePresent();
+    return;
+  }
+  if(e.key==="Escape"&&(openId||openItem)) closeDrawer();
+  if(e.key==="Enter"&&e.target.id==="log-in"){ e.preventDefault(); document.querySelector('[data-act="add-log"]').click(); }
+});
+document.addEventListener("fullscreenchange",()=>{ setTimeout(drawPresent,50); });
+window.addEventListener("resize",()=>{ fitSlides(); drawPresent(); });
+$("#btn-new").addEventListener("click",newProject);
+$("#btn-backup").addEventListener("click",()=>{
+  const data=JSON.stringify({app:"ai-pm",version:1,exportedAt:new Date().toISOString(),settings:{days:TB,wip:WIP},deck:deckCfg,projects:[...projects.values()],items:allX("items"),sprints:allX("sprints")},null,2);
+  saveFile("AI專案備份-"+today()+".json",data);
+});
+$("#btn-restore").addEventListener("click",()=>$("#file").click());
+
+function newProject(){
+  if(!canEdit) return;
+  const now=new Date().toISOString();
+  const p={id:newId(),name:"",start:today(),stage:STAGES[0].k,createdAt:now,updatedAt:now,decisions:[{d:today(),t:"建立專案"}]};
+  persist(p,true); if(view==="guide"||view==="deck") view="board"; renderMain(); openProject(p.id);
+  setTimeout(()=>{ const el=$("#f-name"); el&&el.focus(); },30);
+}
+async function restoreBackup(file){
+  if(!file||!canEdit) return;
+  let data;
+  try{ const text=await (file.text?file.text():new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsText(file);})); data=JSON.parse(text); }
+  catch(e){ notice("讀不到這個檔案。請選擇用「匯出備份」存下的 .json 檔。","err"); return; }
+  if(!data||!Array.isArray(data.projects)){ notice("這個檔案不是專案備份。請選擇用「匯出備份」存下的 .json 檔。","err"); return; }
+  let added=0, replaced=0; const batch=[];
+  data.projects.forEach(raw=>{
+    if(!raw||typeof raw!=="object") return;
+    const p={}; FIELDS.forEach(f=>{ if(!empty(raw[f.k])) p[f.k]=raw[f.k]; });
+    p.stage=ALL_STAGES.includes(p.stage)?p.stage:STAGES[0].k;
+    p.decisions=Array.isArray(p.decisions)?p.decisions.filter(e=>e&&typeof e.t==="string").map(e=>({d:String(e.d||""),t:e.t})):[];
+    p.createdAt=raw.createdAt||new Date().toISOString(); p.updatedAt=raw.updatedAt||p.createdAt;
+    const id=typeof raw.id==="string"&&/^[A-Za-z0-9_\-]{1,100}$/.test(raw.id)?raw.id:newId();
+    p.id=id; projects.has(id)?replaced++:added++;
+    projects.set(id,p); batch.push(p);
+  });
+  const bx={items:[],sprints:[]};
+  ["items","sprints"].forEach(c=>{ (Array.isArray(data[c])?data[c]:[]).forEach(raw=>{
+    if(!raw||typeof raw!=="object") return;
+    const o=cleanX(c,raw); o.id=typeof raw.id==="string"&&/^[A-Za-z0-9_\-]{1,100}$/.test(raw.id)?raw.id:newIdX(c);
+    MAPX(c).set(o.id,o); bx[c].push(o); }); });
+  if(data.settings){ applySettings(data.settings); saveSettings(); }
+  if(data.deck&&typeof data.deck==="object"){ ["title","audience","detail","asks"].forEach(k=>{ if(typeof data.deck[k]==="string") deckCfg[k]=data.deck[k]; }); saveDeckCfg(); }
+  renderAll(); notice("還原中…");
+  if(mode==="db"||mode==="api"){ for(const p of batch){ await writeNow(p); } for(const c of ["items","sprints"]) for(const o of bx[c]) await writeX(c,o); }
+  else { saveLocal(); lsSet(LSX.items,allX("items")); lsSet(LSX.sprints,allX("sprints")); }
+  notice("還原完成：專案新增 "+added+" 筆、覆蓋 "+replaced+" 筆；工作項目 "+bx.items.length+" 筆；衝刺 "+bx.sprints.length+" 筆。");
+}
+async function saveFile(name,data){
+  if(downloadsNS){
+    try{ await downloadsNS.save({filename:name,data}); return; }
+    catch(e){ if(e&&e.code==="declined") return; if(e&&e.code==="rate_limited"){ notice("已有一個下載確認視窗開著，請先處理它。"); return; } }
+  }
+  try{
+    const blob=data instanceof Blob?data:new Blob([data],{type:"text/plain;charset=utf-8"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  }catch(e){ notice("這個環境無法下載檔案。","err"); }
+}
+async function copyText(ta){
+  try{ await navigator.clipboard.writeText(ta.value); notice("已複製。"); }
+  catch(e){ ta.focus(); ta.select(); notice("請按 Ctrl+C（Mac 為 ⌘+C）複製已選取的文字。"); }
+}
+
+/* ================= boot ================= */
+renderAll();
+(async function boot(){
+  const Cl=window.claude;
+  let dbNS=null, userNS=null;
+  if(Cl&&typeof Cl.use==="function"){
+    try{ [dbNS,userNS,downloadsNS]=await Promise.all([Cl.use("db"),Cl.use("user"),Cl.use("downloads")]); }catch(e){}
+  }
+  if(userNS){ try{ canEdit=await userNS.canEdit(); }catch(e){} }
+  if(dbNS){
+    db=dbNS; col=db.collection("projects"); mode="db";
+    ["items","sprints"].forEach(c=>{ COLX[c]=db.collection(c);
+      COLX[c].onSnapshot(snap=>{
+        const next=new Map(), cur=MAPX(c);
+        snap.docs.forEach(d=>{ const local=cur.get(d.id); next.set(d.id,timers[c+":"+d.id]&&local?local:Object.assign({id:d.id},d.data())); });
+        cur.forEach((o,id)=>{ if(!next.has(id)&&timers[c+":"+id]) next.set(id,o); });
+        if(c==="items") items=next; else sprints=next;
+        if(!loaded) return;
+        const typing=document.querySelector("#main input:focus,#main textarea:focus");
+        if(!typing) renderShell(); else { renderSub(); renderRail(); }
+        if(openItem&&!items.has(openItem)){ openItem=null; renderDrawer(); }
+        else if((openItem||openId)&&!document.querySelector(".drawer :focus")) renderDrawer();
+      },()=>{});
+    });
+    db.doc("settings/timebox").onSnapshot(s=>{ if(s.exists){ applySettings(s.data()); if(loaded&&view!=="deck") renderShell(); } },()=>{});
+    db.doc("settings/deck").get().then(s=>{ if(s.exists){ Object.assign(deckCfg,s.data()); if(loaded&&view==="deck") renderDeck(); } }).catch(()=>{});
+    col.onSnapshot(snap=>{
+      const next=new Map();
+      snap.docs.forEach(d=>{ const local=projects.get(d.id); next.set(d.id,timers[d.id]&&local?local:Object.assign({id:d.id},d.data())); });
+      projects.forEach((p,id)=>{ if(!next.has(id)&&timers[id]) next.set(id,p); });
+      projects=next; loaded=true;
+      if(document.querySelector("#main input:focus,#main textarea:focus")){ renderSub(); renderRail(); } else renderShell();
+      if(openId&&!projects.has(openId)){ openId=null; renderDrawer(); }
+      else if(openId&&!document.querySelector(".drawer :focus")) renderDrawer();
+    },err=>{ loaded=true; renderShell(); notice("同步中斷（"+(err&&err.code||"未知")+"）。請重新整理頁面。","err"); });
+  } else {
+    let api=null, apiDenied=false;
+    if(/^https?:$/.test(location.protocol)){
+      try{
+        const r=await fetch("/api/data",{cache:"no-store",credentials:"same-origin",headers:{accept:"application/json"}});
+        const json=(r.headers.get("content-type")||"").includes("application/json");
+        if(r.ok&&json) api=await r.json(); else if((r.status===401||r.status===403)&&json) apiDenied=true;
+      }catch(e){}
+    }
+    if(api||apiDenied){
+      mode="api";
+      if(api){ mergeApi(api); }
+      else { canEdit=false; notice("伺服器拒絕讀取資料：Cloudflare Access 尚未設定完成，或登入已過期。請依 README 的步驟設定後重新整理。","err"); }
+      loaded=true; renderAll();
+      if(api){ apiTimer=setInterval(apiPull,30000); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) apiPull(); }); }
+      return;
+    }
+    mode="local";
+    const a=lsGet(LS_KEY); projects=new Map((Array.isArray(a)?a:[]).map(p=>[p.id,p]));
+    applySettings(lsGet(LS_SET)); const dc=lsGet(LS_DECK); if(dc) Object.assign(deckCfg,dc);
+    ["items","sprints"].forEach(c=>{ const a=lsGet(LSX[c]); const m=new Map((Array.isArray(a)?a:[]).map(o=>[o.id,o])); if(c==="items") items=m; else sprints=m; });
+    loaded=true; renderAll();
+  }
+})();
+})();
+</script>
+</body>
+</html>
