@@ -139,11 +139,11 @@ function page(title, bodyHtml, status = 200) {
   return new Response(
     `<!DOCTYPE html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}｜AI 導入專案管理</title>
 <style>
-:root{--bg:#EEF2F0;--surface:#fff;--ink:#17201E;--muted:#5A6764;--line:#D3DBD8;--accent:#1E5E52;--danger:#A3322A;--danger-soft:#F7DEDB;color-scheme:light}
-@media(prefers-color-scheme:dark){:root{--bg:#111715;--surface:#19211F;--ink:#E3EBE8;--muted:#94A39F;--line:#2B3633;--accent:#6BC2AC;--danger:#F08A80;--danger-soft:#3A1E1B;color-scheme:dark}}
+:root{--bg:#F1EAE0;--surface:#FBF8F3;--ink:#2A2118;--muted:#79695A;--line:#D9CDBC;--accent:#7B4F2A;--danger:#9C3B2C;--danger-soft:#F4DDD6;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#1A1410;--surface:#241C16;--ink:#ECE2D4;--muted:#A79684;--line:#3B2F26;--accent:#D4A878;--danger:#E88B78;--danger-soft:#3C1F19;color-scheme:dark}}
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font:15px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;padding:16px;box-sizing:border-box}
 .card{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 24px}
-h1{font-size:1.25rem;margin:0 0 4px}.sub{color:var(--muted);margin:0 0 18px;font-size:.9rem}
+h1{font-size:1.3rem;margin:0 0 4px;font-family:"Noto Serif TC","Songti TC",serif}.sub{color:var(--muted);margin:0 0 18px;font-size:.9rem}
 label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
 input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;background:transparent;color:inherit}
 button{margin-top:14px;width:100%;border:0;border-radius:8px;padding:11px;background:var(--accent);color:#fff;font:inherit;font-weight:600;cursor:pointer}
@@ -156,7 +156,7 @@ code{font-size:.9em}
 function loginPage(err) {
   return page(
     "登入",
-    `<h1>AI 導入專案管理</h1><p class="sub">請輸入密碼以繼續</p>
+    `<h1>AI Projects</h1><p class="sub">請輸入密碼以繼續</p>
 ${err ? '<div class="err">密碼不正確，請再試一次。</div>' : ""}
 <form method="post" action="/login"><label for="pw">密碼</label><input id="pw" name="password" type="password" autocomplete="current-password" autofocus required><button type="submit">登入</button></form>`,
     err ? 401 : 200
