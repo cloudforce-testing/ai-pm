@@ -51,6 +51,7 @@ h1{font-size:1.6rem;line-height:1.25;margin:0;font-weight:700;letter-spacing:.02
 .btn.danger{color:var(--danger);border-color:var(--danger)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 
+.rail[hidden]{display:none}
 .rail{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
 .seg{position:relative;border:0;background:transparent;text-align:left;padding:12px 14px 12px 18px;border-right:1px solid var(--line);min-width:0}
 .seg:last-child{border-right:0}
@@ -109,6 +110,65 @@ table.t tr:last-child td{border-bottom:0}
 tr.click{cursor:pointer}
 tr.click:hover td{background:var(--sunk)}
 .hint{color:var(--muted);font-size:.85rem}
+
+/* ideas table */
+h1 .count{display:inline-block;vertical-align:middle;margin-left:10px;font-size:.78rem;font-weight:500;color:var(--muted);background:var(--sunk);border-radius:6px;padding:2px 8px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.tools .sp{flex:1}
+.tools .search{position:relative;min-width:220px}
+.tools .search input{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 12px 7px 32px;background:var(--surface);font-size:.9rem}
+.tools .search::before{content:"";position:absolute;left:11px;top:50%;width:11px;height:11px;border:2px solid var(--muted);border-radius:50%;transform:translateY(-60%)}
+.tools .search::after{content:"";position:absolute;left:21px;top:50%;width:6px;height:2px;background:var(--muted);transform:translateY(2px) rotate(45deg)}
+details.dd{position:relative}
+details.dd summary{list-style:none;display:inline-flex;align-items:center;gap:8px}
+details.dd summary::-webkit-details-marker{display:none}
+details.dd summary .pill{font-size:.75rem;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:0 7px;font-variant-numeric:tabular-nums}
+details.dd[open] summary{border-color:var(--accent)}
+.dd-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:12;min-width:220px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:8px}
+.dd-menu label{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:.9rem;cursor:pointer}
+.dd-menu label:hover{background:var(--sunk)}
+.dd-menu .sep{height:1px;background:var(--line);margin:6px 0}
+.dd-menu .cap{font-size:.75rem;color:var(--muted);padding:4px 8px}
+.ideas{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:auto}
+table.ideas-t{border-collapse:separate;border-spacing:0;width:100%;min-width:760px;font-size:.92rem}
+table.ideas-t th{position:sticky;top:0;z-index:2;background:var(--surface);font-weight:600;color:var(--muted);text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap;font-size:.86rem}
+table.ideas-t th:last-child,table.ideas-t td:last-child{border-right:0}
+table.ideas-t th .ic{display:inline-block;width:16px;margin-right:6px;color:var(--muted);text-align:center}
+table.ideas-t td{padding:0 14px;height:56px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+table.ideas-t tr.row{cursor:pointer}
+table.ideas-t tr.row:hover td{background:var(--sunk)}
+table.ideas-t td.name{position:relative;font-weight:500;max-width:360px;overflow:hidden;text-overflow:ellipsis;padding-left:18px}
+table.ideas-t td.name::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--stripe,transparent)}
+table.ideas-t td.name .meta{display:block;font-size:.76rem;color:var(--muted);font-weight:400;line-height:1.2;margin-top:2px}
+table.ideas-t tr.grp td{height:40px;background:var(--sunk);font-weight:700;font-size:.86rem;border-right:0}
+table.ideas-t tr.grp td span{color:var(--muted);font-weight:500;margin-left:8px}
+table.ideas-t tr.add td{height:48px;border-bottom:0;border-right:0;color:var(--muted)}
+table.ideas-t tr.add td button{border:0;background:none;color:inherit;padding:0;font-weight:500}
+table.ideas-t tr.add td button:hover{color:var(--accent)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid transparent;border-radius:6px;padding:2px 8px;font-size:.84rem;line-height:1.5;background:var(--sunk)}
+.chip.theme{border-color:var(--line);background:var(--surface);color:var(--ink)}
+.chip.theme i{width:8px;height:8px;border-radius:50%;background:var(--hue,var(--accent));display:inline-block}
+.chip.rm-later{background:var(--sunk);color:var(--muted)}
+.chip.rm-next{background:var(--warn-soft);color:var(--warn)}
+.chip.rm-now{background:var(--accent-soft);color:var(--accent)}
+.chip.rm-live{background:#DCE9F7;color:#1D4F91}
+.chip.rm-parked{background:var(--danger-soft);color:var(--danger)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.rm-live{background:#1C2F45;color:#8FBCF2}}
+:root[data-theme="dark"] .chip.rm-live{background:#1C2F45;color:#8FBCF2}
+.dots{display:inline-flex;gap:5px;align-items:center}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--line);display:inline-block}
+.dots.imp i.on{background:#4A8EDB}
+.dots.risk i.on{background:#F28B82}
+.dots i.off{width:4px;height:4px;margin:0 4px}
+.ins{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#2F6FD1}
+.ins.zero{color:var(--line);font-weight:400}
+.ins svg{width:18px;height:14px}
+.stack{display:flex;gap:3px;width:200px;height:8px}
+.stack i{display:block;height:100%;border-radius:3px;background:var(--line)}
+.stack i.d{background:#A8D5A2}.stack i.p{background:#9DBFF0}
+.age{color:var(--muted);font-size:.84rem}
+.age.warn{color:var(--warn);font-weight:600}
+@media (max-width:720px){.tools .search{min-width:0;width:100%}.stack{width:120px}}
 
 .report-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
 @media (max-width:860px){.report-grid{grid-template-columns:1fr}}
@@ -262,7 +322,7 @@ details.sec .in{padding:0 14px 14px}
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>AI 導入專案</h1>
+      <h1>AI 導入專案<span class="count" id="count" hidden></span></h1>
       <p class="sub" id="sub">載入中</p>
     </div>
     <div class="actions">
@@ -270,6 +330,7 @@ details.sec .in{padding:0 14px 14px}
       <button class="btn" data-view="deck">產出簡報</button>
       <button class="btn" id="btn-backup">匯出備份</button>
       <button class="btn" id="btn-restore">匯入備份</button>
+      <a class="btn ghost" id="btn-logout" href="/logout" hidden>登出</a>
       <input type="file" id="file" accept=".json,application/json" hidden>
     </div>
   </header>
@@ -278,7 +339,8 @@ details.sec .in{padding:0 14px 14px}
   <div class="rail" id="rail" aria-label="各關卡專案數"></div>
 
   <nav class="tabs" role="tablist">
-    <button role="tab" data-view="board" aria-selected="true">專案關卡</button>
+    <button role="tab" data-view="table" aria-selected="true">全部專案</button>
+    <button role="tab" data-view="board" aria-selected="false">專案關卡</button>
     <button role="tab" data-view="sprint" aria-selected="false">衝刺</button>
     <button role="tab" data-view="backlog" aria-selected="false">待辦清單</button>
     <button role="tab" data-view="gantt" aria-selected="false">甘特圖</button>
@@ -347,7 +409,7 @@ const DEFAULT_TB = [7,14,7,14,28,30,30];
 let projects = new Map();
 let TB = DEFAULT_TB.slice(), WIP = 2;
 let deckCfg = {title:"AI 導入進度報告", audience:"", detail:"validated", asks:""};
-let view = "board", openId = null, pendingAdvance = null, confirmDelete = false;
+let view = "table", openId = null, pendingAdvance = null, confirmDelete = false;
 let gRange = "1-3", gShowParked = false, gSettings = false;
 let reportMonth;
 let mode = "loading", db = null, col = null, canEdit = true, loaded = false;
@@ -364,7 +426,14 @@ let openItem=null, confirmItemDelete=false;
 let planDraft=null, closing=false, closeDraft={review:"",keep:"",problem:"",try:""};
 let blFilter="all", blShowDone=false;
 const COLX={}; const LSX={items:"ai-pm-items-v1",sprints:"ai-pm-sprints-v1"};
-const LS_KEY="ai-pm-projects-v1", LS_SET="ai-pm-settings-v1", LS_DECK="ai-pm-deck-v1";
+const LS_KEY="ai-pm-projects-v1", LS_SET="ai-pm-settings-v1", LS_DECK="ai-pm-deck-v1", LS_TBL="ai-pm-table-v1";
+const TCOLS=[
+  {k:"unit",h:"提案單位",ic:"◎"},{k:"owner",h:"提案人",ic:"◯",off:true},{k:"ins",h:"洞察",ic:"↗"},{k:"imp",h:"影響",ic:"▮"},{k:"risk",h:"風險",ic:"▮"},
+  {k:"score",h:"優先分",ic:"#",off:true},{k:"stage",h:"關卡",ic:"◷"},{k:"prog",h:"交付進度",ic:"▤"},{k:"saved",h:"月省時",ic:"◔",off:true},{k:"due",h:"預計交付",ic:"◫",off:true},{k:"age",h:"更新",ic:"◴"}
+];
+let tbl={group:"none",sort:"stage",parked:false,flag:false,q:"",cols:TCOLS.filter(c=>!c.off).map(c=>c.k)};
+(function(){ const o=lsGet(LS_TBL); if(o&&typeof o==="object"){ Object.assign(tbl,o); tbl.q=""; if(!Array.isArray(tbl.cols)) tbl.cols=TCOLS.filter(c=>!c.off).map(c=>c.k); } })();
+function saveTbl(){ lsSet(LS_TBL,Object.assign({},tbl,{q:""})); }
 
 /* ================= helpers ================= */
 const $ = s=>document.querySelector(s);
@@ -592,6 +661,8 @@ function renderSub(){
   const sp=activeSprint(); const spTxt=sp?"第 "+sp.no+" 次衝刺進行中，剩 "+sprintDay(sp).left+" 天。":"";
   $("#sub").textContent = loaded ? ("進行中 "+active+" 項"+(flagged?"，"+flagged+" 項需要留意":"")+"。"+spTxt+where+(canEdit?"":"（唯讀）")) : "載入中";
   ["#btn-new","#btn-restore"].forEach(s=>{ $(s).hidden=!canEdit; });
+  $("#btn-logout").hidden = mode!=="api";
+  const c=$("#count"); c.hidden=!loaded; c.textContent=all.length+" 個專案";
 }
 function renderRail(){
   const all=[...projects.values()];
@@ -605,6 +676,8 @@ function renderMain(){
   const m=$("#main");
   if(!loaded){ m.innerHTML='<p class="hint">正在讀取專案…</p>'; return; }
   const all=[...projects.values()];
+  $("#rail").hidden = view==="table";
+  if(view==="table"){ m.innerHTML=tableHTML(all); return; }
   if(view==="guide"){ m.innerHTML=guideHTML(); return; }
   if(view==="sprint"){ m.innerHTML=sprintHTML(); return; }
   if(view==="backlog"){ m.innerHTML=backlogHTML(); return; }
@@ -618,6 +691,96 @@ function renderMain(){
   else if(view==="report") m.innerHTML=reportHTML(all);
   else if(view==="deck"){ renderDeck(); }
 }
+
+/* ================= ideas table ================= */
+const HUES=["#1E5E52","#2F6FD1","#B4532A","#7A4FB0","#C2185B","#2E7D32","#8D6E00","#00796B"];
+function hue(str){ let h=0; for(const ch of String(str||"")) h=(h*31+ch.charCodeAt(0))>>>0; return HUES[h%HUES.length]; }
+function insights(p){ return (p.decisions||[]).filter(x=>x&&x.t!=="建立專案").length+(empty(p.interview)?0:1)+(empty(p.followup)?0:1); }
+function roadmap(p){
+  const i=stageIdx(p.stage);
+  if(i<0) return {c:"rm-parked",t:p.stage||"—"};
+  if(i<=1) return {c:"rm-later",t:(i+1)+" "+STAGES[i].s};
+  if(i<=3) return {c:"rm-next",t:(i+1)+" "+STAGES[i].s};
+  if(i<=5) return {c:"rm-now",t:(i+1)+" "+STAGES[i].s};
+  return {c:"rm-live",t:(i+1)+" "+STAGES[i].s};
+}
+function dotsHTML(v,cls){ v=+v||0; let h='<span class="dots '+cls+'" title="'+(v?v+" / 5":"未評分")+'">'; for(let i=1;i<=5;i++) h+='<i class="'+(i<=v?"on":"off")+'"></i>'; return h+"</span>"; }
+function stackHTML(p){
+  const its=allX("items").filter(x=>x.projectId===p.id);
+  if(its.length){
+    const d=its.filter(x=>x.status==="完成").length, ip=its.filter(x=>x.status==="進行中"||x.status==="待驗收").length, td=its.length-d-ip;
+    const seg=(n,c)=>n?'<i class="'+c+'" style="flex:'+n+'"></i>':"";
+    return '<span class="stack" title="工作項目：完成 '+d+'、進行中 '+ip+'、待辦 '+td+'">'+seg(d,"d")+seg(ip,"p")+seg(td,"t")+'</span>';
+  }
+  const g=gateStatus(p); if(!g) return '<span class="hint">—</span>';
+  return '<span class="stack" title="本關欄位 '+g.done.length+'/'+g.req.length+'（尚無工作項目）">'+(g.done.length?'<i class="d" style="flex:'+g.done.length+'"></i>':"")+(g.missing.length?'<i class="t" style="flex:'+g.missing.length+'"></i>':"")+'</span>';
+}
+function ageHTML(p){ const d=daysSince(p.updatedAt); return '<span class="age'+(isStale(p)?" warn":"")+'">'+(d===0?"今天":d+" 天前")+'</span>'; }
+const INS_SVG='<svg viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 11l5-5 4 4 7-7"/><path d="M12 3h5v5"/></svg>';
+function cellHTML(p,k){
+  switch(k){
+    case "unit": return p.unit?'<span class="chip theme" style="--hue:'+hue(p.unit)+'"><i></i>'+esc(p.unit)+'</span>':'<span class="hint">—</span>';
+    case "owner": return esc(p.owner||"—");
+    case "ins": { const n=insights(p); return '<span class="ins'+(n?"":" zero")+'" title="訪談、回訪與決策紀錄筆數">'+INS_SVG+(n?'<span>'+n+'</span>':"")+'</span>'; }
+    case "imp": return dotsHTML(p.sImpact,"imp");
+    case "risk": return dotsHTML(p.sRisk,"risk");
+    case "score": { const sc=score(p); return sc==null?'<span class="hint">—</span>':'<b>'+sc+'</b>'; }
+    case "stage": { const r=roadmap(p); return '<span class="chip '+r.c+'">'+esc(r.t)+'</span>'; }
+    case "prog": return stackHTML(p);
+    case "saved": { const v=saved(p); return v==null?'<span class="hint">—</span>':v+" 小時"; }
+    case "due": return p.due?esc(p.due):'<span class="hint">—</span>';
+    case "age": return ageHTML(p);
+  }
+  return "";
+}
+function tableRows(all){
+  const q=tbl.q.trim().toLowerCase();
+  let list=all.filter(p=>tbl.parked||!PARKED.includes(p.stage));
+  if(tbl.flag) list=list.filter(p=>isStale(p)||isOver(p));
+  if(q) list=list.filter(p=>[p.name,p.unit,p.owner,p.problem,p.current,p.next].some(v=>String(v||"").toLowerCase().includes(q)));
+  const cmp={
+    stage:(a,b)=>{ const x=stageIdx(a.stage), y=stageIdx(b.stage); return ((x<0?99:x)-(y<0?99:y))||(score(b)??-1)-(score(a)??-1)||nm(a).localeCompare(nm(b)); },
+    score:(a,b)=>((score(b)??-1)-(score(a)??-1))||nm(a).localeCompare(nm(b)),
+    updated:(a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""),
+    name:(a,b)=>nm(a).localeCompare(nm(b),"zh-Hant")
+  }[tbl.sort]||((a,b)=>0);
+  list.sort(cmp);
+  return list;
+}
+function rowHTML(p){
+  const i=stageIdx(p.stage); const stripe=i<0?"var(--line)":"var(--s"+(i+1)+")";
+  const meta=[p.owner].filter(Boolean).map(esc).join("／");
+  return '<tr class="row" data-open="'+esc(p.id)+'"><td class="name" style="--stripe:'+stripe+'" title="'+esc(nm(p))+'">'+esc(nm(p))+(meta&&!tbl.cols.includes("owner")?'<span class="meta">'+meta+'</span>':"")+'</td>'+
+    tbl.cols.map(k=>'<td>'+cellHTML(p,k)+'</td>').join("")+'</tr>';
+}
+function tableBodyHTML(all){
+  const list=tableRows(all), span=tbl.cols.length+1;
+  let h="";
+  if(!list.length) h='<tr><td colspan="'+span+'" style="height:80px;color:var(--muted);text-align:center;white-space:normal">'+(all.length?"沒有符合條件的專案。":"還沒有專案。按下方「建立」開始記錄第一個構想。")+'</td></tr>';
+  else if(tbl.group==="none") h=list.map(rowHTML).join("");
+  else {
+    const keyOf=p=>tbl.group==="stage"?(p.stage||"—"):(p.unit||"未填單位");
+    const order=tbl.group==="stage"?ALL_STAGES.concat(["—"]):[...new Set(list.map(keyOf))].sort((a,b)=>a.localeCompare(b,"zh-Hant"));
+    order.forEach(k=>{ const ps=list.filter(p=>keyOf(p)===k); if(!ps.length) return;
+      h+='<tr class="grp"><td colspan="'+span+'">'+esc(k)+'<span>'+ps.length+'</span></td></tr>'+ps.map(rowHTML).join(""); });
+  }
+  if(canEdit) h+='<tr class="add"><td colspan="'+span+'"><button data-act="new">＋ 建立</button></td></tr>';
+  return h;
+}
+function tableHTML(all){
+  const opt=(v,t,cur)=>'<label><input type="radio" name="'+cur+'" data-t="'+cur+'" value="'+v+'"'+(tbl[cur]===v?" checked":"")+'> '+t+'</label>';
+  const head='<th>'+'<span class="ic">Aa</span>專案</th>'+tbl.cols.map(k=>{ const c=TCOLS.find(x=>x.k===k); return '<th><span class="ic">'+c.ic+'</span>'+c.h+'</th>'; }).join("");
+  const nf=(tbl.parked?1:0)+(tbl.flag?1:0);
+  return '<div class="tools">'+
+    (canEdit?'<button class="btn primary" data-act="new">建立</button>':"")+
+    '<details class="dd"><summary class="btn">分組依據'+(tbl.group!=="none"?'<span class="pill">1</span>':"")+'</summary><div class="dd-menu">'+opt("none","不分組","group")+opt("stage","關卡","group")+opt("unit","提案單位","group")+'</div></details>'+
+    '<details class="dd"><summary class="btn">篩選器'+(nf?'<span class="pill">'+nf+'</span>':"")+'</summary><div class="dd-menu"><label><input type="checkbox" data-t="parked"'+(tbl.parked?" checked":"")+'> 顯示暫停與退場</label><label><input type="checkbox" data-t="flag"'+(tbl.flag?" checked":"")+'> 只看需要留意的（停滯或超過時間盒）</label></div></details>'+
+    '<details class="dd"><summary class="btn">排序</summary><div class="dd-menu">'+opt("stage","關卡順序","sort")+opt("score","優先分高到低","sort")+opt("updated","最近更新","sort")+opt("name","名稱","sort")+'</div></details>'+
+    '<details class="dd"><summary class="btn">欄位<span class="pill">'+(tbl.cols.length+1)+'</span></summary><div class="dd-menu"><div class="cap">顯示哪些欄位</div>'+TCOLS.map(c=>'<label><input type="checkbox" data-col="'+c.k+'"'+(tbl.cols.includes(c.k)?" checked":"")+'> '+c.h+'</label>').join("")+'</div></details>'+
+    '<span class="sp"></span><div class="search"><input id="t-q" type="search" placeholder="查找專案" value="'+esc(tbl.q)+'" aria-label="查找專案"></div></div>'+
+    '<div class="ideas"><table class="ideas-t"><thead><tr>'+head+'</tr></thead><tbody id="t-body">'+tableBodyHTML(all)+'</tbody></table></div>';
+}
+function renderTableBody(){ const b=$("#t-body"); if(b) b.innerHTML=tableBodyHTML([...projects.values()]); }
 
 /* ================= board ================= */
 function cardHTML(p,prefix){
@@ -1250,6 +1413,7 @@ function refreshKpis(p){
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
+  document.querySelectorAll("details.dd[open]").forEach(d=>{ if(!d.contains(e.target)) d.removeAttribute("open"); });
   const pr=document.querySelector(".present");
   if(pr&&pr.contains(e.target)){
     const b=e.target.closest("[data-act]");
@@ -1326,6 +1490,8 @@ document.addEventListener("change",e=>{
   if(t.id==="file"){ restoreBackup(t.files[0]); t.value=""; return; }
   if(t.id==="month"){ reportMonth=t.value||today().slice(0,7); renderMain(); return; }
   if(t.id==="g-range"){ gRange=t.value; renderMain(); return; }
+  if(t.dataset&&t.dataset.t){ const k=t.dataset.t; tbl[k]=t.type==="checkbox"?t.checked:t.value; saveTbl(); renderMain(); return; }
+  if(t.dataset&&t.dataset.col){ const k=t.dataset.col; tbl.cols=TCOLS.map(c=>c.k).filter(c=>c===k?t.checked:tbl.cols.includes(c)); saveTbl(); renderMain(); return; }
   if(t.id==="g-parked"){ gShowParked=t.checked; renderMain(); return; }
   if(t.dataset&&t.dataset.tb!==undefined){ if(!canEdit) return; const i=+t.dataset.tb, v=parseInt(t.value,10); TB[i]=v>0?v:DEFAULT_TB[i]; saveSettings(); renderShell(); return; }
   if(t.id==="g-wip"){ if(!canEdit) return; const v=parseInt(t.value,10); WIP=v>0?v:2; saveSettings(); renderShell(); return; }
@@ -1346,6 +1512,7 @@ document.addEventListener("change",e=>{
 });
 document.addEventListener("input",e=>{
   const t=e.target;
+  if(t.id==="t-q"){ tbl.q=t.value; renderTableBody(); return; }
   if(planDraft&&t.id==="sp-goal") planDraft.goal=t.value;
   if(planDraft&&t.id==="sp-start") planDraft.start=t.value;
   if(planDraft&&t.id==="sp-len") planDraft.len=t.value;
@@ -1375,7 +1542,7 @@ function newProject(){
   if(!canEdit) return;
   const now=new Date().toISOString();
   const p={id:newId(),name:"",start:today(),stage:STAGES[0].k,createdAt:now,updatedAt:now,decisions:[{d:today(),t:"建立專案"}]};
-  persist(p,true); if(view==="guide"||view==="deck") view="board"; renderMain(); openProject(p.id);
+  persist(p,true); if(view==="guide"||view==="deck") view="table"; renderMain(); openProject(p.id);
   setTimeout(()=>{ const el=$("#f-name"); el&&el.focus(); },30);
 }
 async function restoreBackup(file){

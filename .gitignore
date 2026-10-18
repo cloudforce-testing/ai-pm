@@ -3,3 +3,4 @@ node_modules/
 .dev.vars
 backup*.sql
 .DS_Store
+.claude/
